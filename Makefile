@@ -41,14 +41,14 @@ endif
 	     RM = rm -f
 	  MKDIR = mkdir -p
 	  RMDIR = rm -rf
-   INSTBINFLAGS = -m 0700
+   INSTBINFLAGS = -m 0755
 	INSTBIN = install $(INSTBINFLAGS)
-   INSTSRPFLAGS = -m 0700
+   INSTSRPFLAGS = -m 0755
 	INSTSRP = install $(INSTSRPFLAGS)
-   INSTDOCFLAGS = -c -m 0444
+   INSTDOCFLAGS = -c -m 0644
 	INSTDOC = install $(INSTDOCFLAGS)
    INSTCONFLAGS = -c -m 0644
-	INSTCON = install $(INSTDOCFLAGS)
+	INSTCON = install $(INSTCONFLAGS)
 	   LINK = ln -sf
 #
 	SDOCDIR = $(DESTDIR)/usr/share/man/man8

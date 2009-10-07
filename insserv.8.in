@@ -1,8 +1,8 @@
 .\"
-.\" Copyright 2000-2008 Werner Fink
+.\" Copyright 2000-2009 Werner Fink
 .\" Copyright 2000-2003 SuSE GmbH Nuernberg, Germany
-.\" Copyright 2007 SuSE Linux Products GmbH Nuernberg, Germany
-.\" Copyright 2008 SuSE Linux Products GmbH Nuernberg, Germany
+.\" Copyright 2007-2009 SuSE Linux Products GmbH Nuernberg, Germany
+.\" Copyright 2009 Petter Reinholdtsen
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -21,11 +21,9 @@
 @@BEGIN_SUSE@@
 .TH INSSERV 8 "Jul 29, 2008" "Version 1.11" "The SuSE boot concept"
 .UC 8
-.OS SuSE Linux
 @@ELSE_SUSE@@
 .TH INSSERV 8 "Jul 29, 2008" "Version 1.11"
 .UC 8
-.OS Debian
 @@END_SUSE@@
 .SH NAME
 insserv \- Enable an installed system init script
@@ -43,11 +41,7 @@ insserv \- Enable an installed system init script
 .RB [ \-v ]
 .RB [ \-c\ <config> ]
 .RB [ \-p\ <path> ]
-@@BEGIN_SUSE@@
-.RI [[ / ] path/to/init.d/ ] script [ ,start=<lvl1> [ ,<lvl2>\ ... ]
-@@ELSE_SUSE@@
-.RI [[ / ] path/to/init.d/ ] script [ ,start=<lvl1> [ ,<lvl2>\ ... ] ,stop=<lvl1> [ ,<lvl2>\ ... ]]
-@@END_SUSE@@
+.RI [[ / ] path/to/init.d/ ] script [ ,start=<lvl1,lvl2,...>,stop=<lvl1,lvl2,...> ]
 .PP
 .B insserv
 .RB [ \-v ]
@@ -138,7 +132,7 @@ keyword implies that the script using this keyword
 should be started
 .B before
 the specified service names.
-Wereas the optional
+Whereas the optional
 .B X\-Stop\-After
 keyword implies that the script using this keyword
 should be stopped
@@ -154,6 +148,7 @@ directories (see \fI init.d\fR (7)).
 @@ELSE_SUSE@@
 directories.
 @@END_SUSE@@
+@@BEGIN_SUSE@@
 Known runlevels are:
 .sp 1
 .in +1l
@@ -165,15 +160,12 @@ Known runlevels are:
  \fB4\fR\   reserved for local use
  \fB5\fR\   used for full multiuser with network and xdm
  \fB6\fR\   used for System reboot
-@@BEGIN_SUSE@@
  \fBS\fR\   used during boot into single user mode
  \fBB\fR\   used during boot before any other runlevel
-@@ELSE_SUSE@@
- \fBS\fR\   used during boot before any other runlevel
-@@END_SUSE@@
 .fi
 .in -1l
 .sp 1
+@@END_SUSE@@
 .PP
 .B insserv
 scans for
@@ -244,7 +236,7 @@ case.
 .BR Required-Stop .
 @@END_SUSE@@
 .P
-Beside the defined
+In addition to the defined
 .B System Facilities
 in the configuration file
 .IR /etc/insserv.conf ,
@@ -268,8 +260,8 @@ Specify path to the insserv.conf file and the insserv.conf.d
 directory.  Useful for testing.
 .TP
 .BR \-o\ <path> ,\  \-\-override\ <path>
-Path to replace existing LSB comment headers with the comment
-headers found in this path (default path is
+LSB comment headers found in this path will override existing
+LSB comment headers of scripts in the init.d directory (default path is
 .IR /etc/insserv/overrides/ ).
 .TP
 .BR \-p\ <path> ,\  \-\-path\ <path>
@@ -282,7 +274,7 @@ Do not update symlinks.
 Remove the listed scripts from all runlevels.
 .TP
 .BR \-d ,\  \-\-default
-Use default runlevels a defined in the scripts.
+Use default runlevels as defined in the scripts.
 This may restore an edited runlevel link scheme.
 .TP
 .BR \-f ,\  \-\-force
@@ -327,22 +319,17 @@ checks for the existence of these scripts.
 For the runlevels the information found in
 the script is used.
 .TP
-.RI [[ / ] path/to/init.d/ ] script [ ,start=<lvl1> [ ,<lvl2> ]]\ ...
+.RI [[ / ] path/to/init.d/ ] script [ ,start=<lvl1,lvl2,...> ]
 List of scripts which have to be added to
 the specified runlevels to be started with.
 You may use this extension to override the default values
 for start and stop runlevels of the script.
 Note that
-.BR <lvl1> ,\  <lvl2> ,\ ...
+.BR lvl1 ,\  lvl2 ,\ ...
 are the known runlevels explained above.
 The extension
-.IR ,stop=<lvl1> [ ,<lvl2> ]]
-is possible
-@@BEGIN_SUSE@@
-is possible but ignored on SuSE Linux.
-@@ELSE_SUSE@@
+.IR ,stop=<lvl1,lvl2,...>
 is also possible.
-@@END_SUSE@@
 .TP
 .RI \fB\-r\fR\ [[ / ] path/to/init.d/ ] script\ ...
 List of scripts which should be removed from
@@ -354,9 +341,9 @@ checks for the existence of these scripts.
 .\"
 .SH OVERRIDES
 Beside using the extensions
-.IR ,start=<lvl1> [ ,<lvl2> ]]
+.IR ,start=<lvl1,lvl2,...>
 and
-.IR ,stop=<lvl1> [ ,<lvl2> ]]
+.IR ,stop=<lvl1,lvl2,...>
 it is possible to use override files replace a LSB comment header
 or simple provide a missing LSB comment header.  This can be done
 by placing a file with the new LSB comment header using the same
@@ -413,7 +400,9 @@ of the following characters
 .sp 1
 will be ignored.
 .SH BUGS
-Boot script sometimes misses comments.
+Boot scripts sometimes lack a LSB comment header. Contact a package
+maintainer or developer of the software which provides the script to
+have a LSB comment header added to it.
 .SH FILES
 .TP
 .I /etc/insserv.conf
@@ -452,7 +441,6 @@ for
 with the help of
 .BR startpar (8).
 .in -7
-
 .\"
 .SH SEE ALSO
 @@BEGIN_SUSE@@
@@ -466,12 +454,16 @@ with the help of
 @@END_SUSE@@
 .BR startpar (8).
 .SH COPYRIGHT
-2000\-2008 Werner Fink,
+2000\-2009 Werner Fink,
+.br
+2009 SuSE Linux Products GmbH Nuernberg, Germany.
 .br
 2000\-2003 SuSE GmbH Nuernberg, Germany,
 .br
-2007 SuSE Linux Products GmbH Nuernberg, Germany.
-.br
-2008 SuSE Linux Products GmbH Nuernberg, Germany.
+2007\-2009 SuSE Linux Products GmbH Nuernberg, Germany.
 .SH AUTHOR
 Werner Fink <feedback@suse.de>
+.SH CONTRIBUTORS
+Petter Reinholdtsen
+.br
+Kel Modderman

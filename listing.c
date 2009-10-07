@@ -1,9 +1,9 @@
 /*
  * listing.c
  *
- * Copyright 2000-2008 Werner Fink, 2000 SuSE GmbH Nuernberg, Germany,
+ * Copyright 2000-2009 Werner Fink, 2000 SuSE GmbH Nuernberg, Germany,
  *				    2003 SuSE Linux AG, Germany.
- *			       2007-2008 SuSE Linux Products GmbH Nuernberg, Germany
+ *			       2007-2009 SuSE Linux Products GmbH Nuernberg, Germany
  *
  * This source is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

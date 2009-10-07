@@ -1,8 +1,8 @@
 /*
  * listing.h
  *
- * Copyright 2000,2008 Werner Fink, 2000 SuSE GmbH Nuernberg, Germany.
- *				    2008 SuSE Linux Products GmbH Nuernberg, Germany
+ * Copyright 2000,2009 Werner Fink, 2000 SuSE GmbH Nuernberg, Germany.
+ *				    2008,2009 SuSE Linux Products GmbH Nuernberg, Germany
  *
  * This source is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -293,7 +293,7 @@ extern void lsort(const char type);
 extern const char *const delimeter;
 extern void error(const char *restrict fmt, ...) attribute((noreturn,format(printf,1,2)));
 extern void warn (const char *restrict fmt, ...) attribute((format(printf,1,2)));
-extern void info (const char *restrict fmt, ...) attribute((format(printf,1,2)));
+extern void info (int level, const char *restrict fmt, ...) attribute((format(printf,2,3)));
 extern inline int map_has_runlevels(void) attribute((always_inline));
 extern inline char map_runlevel_to_key(const int runlevel);
 extern inline ushort map_key_to_lvl(const char key);
@@ -317,42 +317,42 @@ static inline char * xstrdup(const char *restrict s)
 #define xreset(ptr)	\
 	{char *restrict tmp = (char *restrict)ptr; if (ptr && *tmp) free(ptr);} ptr = NULL
 
-#if defined(HAS_unlinkat) && defined(_ATFILE_SOURCE)
+#if defined(HAS_unlinkat) && defined(_ATFILE_SOURCE) && !defined(__stub_unlinkat)
 # define xremove(d,x) (__extension__ ({ if ((dryrun ? 0 : \
 	(unlinkat(d,x,0) != 0 && (errno != EISDIR || unlinkat(d,x,AT_REMOVEDIR) != 0)))) \
 	warn ("can not remove(%s%s): %s\n", rcd, x, strerror(errno)); \
 	else \
-	info("remove service %s/%s%s\n", path, rcd, x); }))
+	info(1, "remove service %s/%s%s\n", path, rcd, x); }))
 #else
 # define xremove(d,x) (__extension__ ({ if ((dryrun ? 0 : (remove(x) != 0))) \
 	warn ("can not remove(%s%s): %s\n", rcd, x, strerror(errno)); \
 	else \
-	info("remove service %s/%s%s\n", path, rcd, x); }))
+	info(1, "remove service %s/%s%s\n", path, rcd, x); }))
 #endif
-#if defined(HAS_symlinkat) && defined(_ATFILE_SOURCE)
+#if defined(HAS_symlinkat) && defined(_ATFILE_SOURCE) && !defined(__stub_symlinkat)
 # define xsymlink(d,x,y) (__extension__ ({ if ((dryrun ? 0 : (symlinkat(x, d, y) != 0))) \
 	warn ("can not symlink(%s, %s%s): %s\n", x, rcd, y, strerror(errno)); \
 	else \
-	info("enable service %s -> %s/%s%s\n", x, path, rcd, y); }))
+	info(1, "enable service %s -> %s/%s%s\n", x, path, rcd, y); }))
 #else
 # define xsymlink(d,x,y) (__extension__ ({ if ((dryrun ? 0 : (symlink(x, y) != 0))) \
 	warn ("can not symlink(%s, %s%s): %s\n", x, rcd, y, strerror(errno)); \
 	else \
-	info("enable service %s -> %s/%s%s\n", x, path, rcd, y); }))
+	info(1, "enable service %s -> %s/%s%s\n", x, path, rcd, y); }))
 #endif
-#if defined(HAS_fstatat) && defined(_ATFILE_SOURCE)
+#if defined(HAS_fstatat) && defined(_ATFILE_SOURCE) && !defined(__stub_fstatat)
 # define xstat(d,x,s)	(__extension__ ({ fstatat(d,x,s, 0); }))
 # define xlstat(d,x,s)	(__extension__ ({ fstatat(d,x,s, AT_SYMLINK_NOFOLLOW); }))
 #else
 # define xstat(d,x,s)	(__extension__ ({ stat(x,s); }))
 # define xlstat(d,x,s)	(__extension__ ({ lstat(x,s); }))
 #endif
-#if defined(HAS_readlinkat) && defined(_ATFILE_SOURCE)
+#if defined(HAS_readlinkat) && defined(_ATFILE_SOURCE) && !defined(__stub_readlinkat)
 # define xreadlink(d,x,b,l)	(__extension__ ({ readlinkat(d,x,b,l); }))
 #else
 # define xreadlink(d,x,b,l)	(__extension__ ({ readlink(x,b,l); }))
 #endif
-#if defined(HAS_openat) && defined(_ATFILE_SOURCE)
+#if defined(HAS_openat) && defined(_ATFILE_SOURCE) && !defined(__stub_openat)
 # define xopen(d,x,f)	(__extension__ ({ openat(d,x,f); }))
 #else
 # define xopen(d,x,f)	(__extension__ ({ open(x,f); }))

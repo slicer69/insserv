@@ -1,11 +1,11 @@
 /*
  * insserv(.c)
  *
- * Copyright 2000-2008 Werner Fink, 2000 SuSE GmbH Nuernberg, Germany,
+ * Copyright 2000-2009 Werner Fink, 2000 SuSE GmbH Nuernberg, Germany,
  *				    2003 SuSE Linux AG, Germany.
  *				    2004 SuSE LINUX AG, Germany.
- *			       2005-2008 SUSE LINUX Products GmbH, Germany.
- * Copyright 2005,2008 Petter Reinholdtsen
+ *			       2005-2009 SUSE LINUX Products GmbH, Germany.
+ * Copyright 2005,2008,2009 Petter Reinholdtsen
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,20 @@
 # include <sys/mount.h>
 #endif /* SUSE */
 #include "listing.h"
+
+#if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) >= 600
+# ifndef POSIX_FADV_SEQUENTIAL
+#  define posix_fadvise(fd, off, len, adv)  (-1)
+# endif
+#endif
+
+#ifndef PATH_MAX
+# ifdef MAXPATHLEN
+#  define PATH_MAX  MAXPATHLEN
+# else
+#  define PATH_MAX  2048
+# endif
+#endif
 
 #ifdef SUSE
 # define DEFAULT_START_LVL	"3 5"
@@ -125,8 +139,8 @@ static char *root;
 /* The main line buffer if unique */
 static char buf[LINE_MAX];
 
-/* When to be verbose */
-static boolean verbose = false;
+/* When to be verbose, and what level of verbosity */
+static int verbose = 0;
 
 /* When to be verbose */
 static boolean dryrun = false;
@@ -726,9 +740,9 @@ static inline void makedep(void)
 
     if (dryrun) {
 #ifdef USE_KILL_IN_BOOT
-	info("dryrun, not creating .depend.boot, .depend.start, .depend.halt, and .depend.stop\n");
+	info(1, "dryrun, not creating .depend.boot, .depend.start, .depend.halt, and .depend.stop\n");
 #else  /* not USE_KILL_IN_BOOT */
-	info("dryrun, not creating .depend.boot, .depend.start, and .depend.stop\n");
+	info(1, "dryrun, not creating .depend.boot, .depend.start, and .depend.stop\n");
 #endif /* not USE_KILL_IN_BOOT */
 	return;
     }
@@ -743,8 +757,8 @@ static inline void makedep(void)
 	return;
     }
 
-    info("creating .depend.boot\n");
-    info("creating .depend.start\n");
+    info(1, "creating .depend.boot\n");
+    info(1, "creating .depend.start\n");
 
     lsort('S');					/* Sort into start order, set new sorder */
 
@@ -875,9 +889,9 @@ static inline void makedep(void)
 	return;
     }
 
-    info("creating .depend.halt\n");
+    info(1, "creating .depend.halt\n");
 #endif /* USE_KILL_IN_BOOT */
-    info("creating .depend.stop\n");
+    info(1, "creating .depend.stop\n");
 
     lsort('K');					/* Sort into stop order, set new korder */
 
@@ -1015,9 +1029,9 @@ void warn (const char *restrict const fmt, ...)
 /*
  * Print message when verbose is enabled
  */
-void info(const char *fmt, ...) {
+void info(int level, const char *fmt, ...) {
     va_list ap;
-    if (!verbose)
+    if (level > verbose)
 	goto out;
     va_start(ap, fmt);
     _logger(fmt, ap);
@@ -1063,7 +1077,7 @@ static DIR * openrcdir(const char *restrict const rcpath)
 
     if (stat(rcpath, &st) < 0) {
 	if (errno == ENOENT) {
-	    info("creating directory '%s'\n", rcpath);
+	    info(1, "creating directory '%s'\n", rcpath);
 	    if (!dryrun)
 		mkdir(rcpath, (S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH));
 	} else
@@ -1188,7 +1202,7 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 #define description	script_inf.description
 #define interactive	script_inf.interactive
 
-    info("Loading %s\n", path);
+    info(2, "Loading %s\n", path);
 
     if ((fd = xopen(dfd, path, o_flags)) < 0 || (script = fdopen(fd, "r")) == (FILE*)0)
 	error("fopen(%s): %s\n", path, strerror(errno));
@@ -1829,7 +1843,7 @@ static void scan_conf_file(const char *restrict file)
     regmatch_t subloc[SUBCONFNUM], *val = (regmatch_t*)0;
     FILE *conf;
 
-    info("Loading %s\n", file);
+    info(2, "Loading %s\n", file);
 
     do {
 	const char * fptr = file;
@@ -2314,10 +2328,10 @@ int main (int argc, char *argv[])
 		ignore = true;
 		break;
 	    case 'v':
-		verbose = true;
+		verbose ++;
 		break;
 	    case 'n':
-		verbose = true;
+		verbose ++;
 		dryrun = true;
 		break;
 	    case 'p':
@@ -3200,7 +3214,7 @@ int main (int argc, char *argv[])
      */
     follow_all();
     if (is_loop_detected() && !ignore)
-	error("exiting without changing boot order!\n");
+	error("exiting now without changing boot order!\n");
 
     /*
      * Be sure that interactive scripts are the only member of

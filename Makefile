@@ -125,7 +125,15 @@ ifneq ($(MAKECMDGOALS),clean)
 
 endif
 
-install:	$(TODO)
+check: insserv
+ifeq ($(ISSUSE),-DSUSE)
+	issuse=true tests/common
+#	issuse=true tests/suse
+else
+	tests/common
+endif
+
+install:	$(TODO) check
 	$(MKDIR)   $(SBINDIR)
 	$(MKDIR)   $(SDOCDIR)
 	$(MKDIR)   $(CONFDIR)

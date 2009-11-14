@@ -1,5 +1,11 @@
 -------------------------------------------------------------------
-Wed Aug 19 12:07:58 CEST 200 - werner@suse.de
+Sat Nov 14 20:50:10 CEST 2009 - pere@hungry.com
+
+- Add simple test case checking the ordering of three scripts.  Run the test
+  suite before installing.
+
+-------------------------------------------------------------------
+Wed Aug 19 12:07:58 CEST 2009 - werner@suse.de
 
 - Use dependency sorting for scripts using $all
 

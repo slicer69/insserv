@@ -241,8 +241,12 @@ present_ok ()
 {
     local rcdpath=$(runlevel_path $1); shift
     local script=$1;   shift
-    local ret=0
-    test -L ${rcdpath}/[KS][0-9][0-9]$script || ret=1
+    local ret=1
+    for f in ${rcdpath}/[KS][0-9][0-9]$script ; do
+	if [ -L $f ] ; then
+	    ret=0
+	fi
+    done
     counttest
     return $ret
 }

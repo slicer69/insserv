@@ -51,6 +51,56 @@ check_order 3 firstscript middlescript
 check_order 3 middlescript lastscript
 }
 ##########################################################################
+test_undetected_loop() {
+initdir_purge
+set +C
+cat <<'EOF' > $insconf
+$local_fs       mountall
+EOF
+set -C
 
+insertscript hibernate <<EOF
+### BEGIN INIT INFO
+# Provides:          hibernate-cleanup
+# Default-Start:     3
+# Default-Stop:
+# Required-Start:
+# Required-Stop:
+# Should-Start:      udev devfsd raid2 mdadm lvm evms cryptdisks
+# X-Start-Before:    mountall
+### END INIT INFO
+EOF
+
+insertscript mountall.sh <<EOF
+### BEGIN INIT INFO
+# Provides:          mountall
+# Required-Start:
+# Required-Stop:
+# Default-Start:     3
+# Default-Stop:
+# Short-Description: Mount all filesystems.
+### END INIT INFO
+EOF
+
+# This should fail, as it introduce a loop
+if insertscript mdadm <<EOF ; then
+### BEGIN INIT INFO
+# Provides:          mdadm
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Default-Start:     3
+# Default-Stop:
+### END INIT INFO
+EOF
+    counttest
+    error "Able to insert mdadm even though it introduce a loop"
+fi
+echo insserv.conf:
+cat $insconf
+list_rclinks
+check_order 3 mountall.sh mdadm
+}
+##########################################################################
 
 test_simple_sequence
+test_undetected_loop

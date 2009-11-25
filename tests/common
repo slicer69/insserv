@@ -52,6 +52,10 @@ check_order 3 middlescript lastscript
 }
 ##########################################################################
 test_undetected_loop() {
+echo
+echo "info: test if loop involving virtual facility is detected."
+echo
+
 initdir_purge
 set +C
 cat <<'EOF' > $insconf

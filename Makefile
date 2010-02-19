@@ -166,6 +166,7 @@ FILES	= README         \
 	  init-functions \
 	  remove_initd   \
 	  install_initd  \
+	  tests/common   \
 	  tests/suite    \
 	  insserv-$(VERSION).lsm
 

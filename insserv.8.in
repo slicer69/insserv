@@ -282,6 +282,10 @@ Ignore if a required service is missed. Beside this if start and or
 stop levels are specified on the command line the default levels of
 the script will be ignored.
 .TP
+.BR \-u\ <path> ,\  \-\-upstart-job\ <path>
+Path to replace existing upstart job path.  (default path is
+.IR /lib/init/upstart-job ).
+.TP
 .BR \-h ,\  \-\-help
 Print out short usage message.
 .PP
@@ -354,6 +358,12 @@ add a file with the same name in the directory
 .I /usr/share/insserv/overrides/
 to make them completely LSB compliant.
 .\"
+.SH UPSTART JOB COMPATIBILITY
+To allow upstart jobs to work as init.d scripts, insserv will
+recognize a symlink from path/to/init.d/script to
+/lib/init/upstart-job as upstart jobs, and instead of reading the
+header from the file will run the script with the argument lsb-header
+to get the script header.
 .SH EXIT CODES
 The exit codes have the following conditions:
 .RS 7

@@ -1,8 +1,16 @@
 -------------------------------------------------------------------
+Fri Feb 19 13:36:50 CET 2010 - werner@suse.de
+
+- Adopt upstart-job patch to be able to support traditional sysv
+  rc execution of upstart jobs. Patch from Petter Reinholdtsen.
+- Defend against symlinks in init.d/ to other scripts in init.d/
+  Patch from Kel Modderman found at the Debian SVN server.
+
+-------------------------------------------------------------------
 Sat Nov 14 20:50:10 CEST 2009 - pere@hungry.com
 
-- Add simple test case checking the ordering of three scripts.  Run the test
-  suite before installing.
+- Add simple test case checking the ordering of three scripts.  Run
+  the test suite before installing.
 
 -------------------------------------------------------------------
 Wed Aug 19 12:07:58 CEST 2009 - werner@suse.de

@@ -97,6 +97,8 @@ static inline void oneway(char *restrict stop)
 # define INSCONF	"/etc/insserv.conf"
 #endif
 
+const char *upstartjob_path = "/lib/init/upstart-job";
+
 /*
  * For a description of regular expressions see regex(7).
  */
@@ -1172,9 +1174,76 @@ static inline void scan_script_reset(void)
     xreset(script_inf.interactive);
 }
 
+/*
+ * return name of upstart job if the script is a symlink to
+ * /lib/init/upstart-job, or NULL if path do not point to an
+ * upstart job.
+ */
+static char *is_upstart_job(const char *path)
+{
+    uint deep = 0;
+    char buf[PATH_MAX+1];
+    char *script = xstrdup(path);
+    char *retval = basename(path);	/* GNU basename */
+
+    buf[PATH_MAX] = '\0';
+
+    do {
+	struct stat statbuf;
+	int len;
+
+	if (deep++ > MAXSYMLINKS) {
+	    errno = ELOOP;
+	    warn("Can not determine upstart job name for %s: %s\n", path, strerror(errno));
+	    break;
+	}
+
+	if (lstat(script, &statbuf) < 0) {
+	    warn("Can not stat %s: %s\n", path, strerror(errno));
+	    break;
+	}
+
+	if (!S_ISLNK(statbuf.st_mode))
+	    break;
+
+	if ((len = readlink(script, buf, sizeof(buf)-1)) < 0)
+	    break;
+	buf[len] = '\0';
+
+	if (buf[0] != '/') {		/* restore relative links */
+	    const char *lastslash;
+
+	    if ((lastslash = strrchr(script, '/'))) {
+		size_t dirlen = lastslash - script + 1;
+
+		if (dirlen + len > PATH_MAX)
+		    len = PATH_MAX - dirlen;
+
+		memmove(&buf[dirlen], &buf[0], len + 1);
+		memcpy(&buf[0], script, dirlen);
+	    }
+	}
+
+	free(script);
+
+	if (strcmp(buf, upstartjob_path) == 0) {
+	    info(2, "script '%s' is upstart job\n", retval);
+	    return strdup(retval);
+	}
+
+	script = xstrdup(buf);
+
+    } while (1);
+
+    free(script);
+
+    return (char*)0;
+}
+
 #define FOUND_LSB_HEADER   0x01
 #define FOUND_LSB_DEFAULT  0x02
 #define FOUND_LSB_OVERRIDE 0x04
+#define FOUND_LSB_UPSTART  0x08
 
 static int o_flags = O_RDONLY;
 
@@ -1184,11 +1253,12 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 			      const boolean cache, const boolean ignore)
 {
     regmatch_t subloc[SUBNUM_SHD+1], *val = &subloc[SUBNUM-1], *shl = &subloc[SUBNUM_SHD-1];
+    char *upstart_job = (char*)0;
     char *begin = (char*)0, *end = (char*)0;
     char *pbuf = buf;
     FILE *script;
     uchar ret = 0;
-    int fd;
+    int fd = -1;
 
 #define provides	script_inf.provides
 #define required_start	script_inf.required_start
@@ -1204,12 +1274,23 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 
     info(2, "Loading %s\n", path);
 
-    if ((fd = xopen(dfd, path, o_flags)) < 0 || (script = fdopen(fd, "r")) == (FILE*)0)
-	error("fopen(%s): %s\n", path, strerror(errno));
+    if (NULL != (upstart_job = is_upstart_job(path))) {
+	char cmd[PATH_MAX];
+	int len;
+	len = snprintf(cmd, sizeof(cmd), "%s %s lsb-header", upstartjob_path, upstart_job);
+	if (len < 0 || sizeof(cmd) == len)
+	    error("snprintf: insufficient buffer for %s\n", path);
+	if ((script = popen(cmd, "r")) == (FILE*)0)
+	    error("popen(%s): %s\n", path, strerror(errno));
+	ret |= FOUND_LSB_UPSTART;
+    } else {
+	if ((fd = xopen(dfd, path, o_flags)) < 0 || (script = fdopen(fd, "r")) == (FILE*)0)
+	    error("fopen(%s): %s\n", path, strerror(errno));
 
 #if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) >= 600
-    (void)posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
+	(void)posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
 #endif
+    }
 
 #define COMMON_ARGS	buf, SUBNUM, subloc, 0
 #define COMMON_SHD_ARGS	buf, SUBNUM_SHD, subloc, 0
@@ -1312,16 +1393,21 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 #undef COMMON_ARGS
 #undef COMMON_SHD_ARGS
 
+    if (upstart_job) {
+	pclose(script);
+	free(upstart_job);
+	upstart_job = 0;
+    } else {
 #if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) >= 600
-    if (cache) {
-	off_t deep = ftello(script);
-	(void)posix_fadvise(fd, 0, deep, POSIX_FADV_WILLNEED);
-	(void)posix_fadvise(fd, deep, 0, POSIX_FADV_DONTNEED);
-    } else
-	(void)posix_fadvise(fd, 0, 0, POSIX_FADV_NOREUSE);
+	if (cache) {
+	    off_t deep = ftello(script);
+	    (void)posix_fadvise(fd, 0, deep, POSIX_FADV_WILLNEED);
+	    (void)posix_fadvise(fd, deep, 0, POSIX_FADV_DONTNEED);
+	} else
+	    (void)posix_fadvise(fd, 0, 0, POSIX_FADV_NOREUSE);
 #endif
-
-    fclose(script);
+	fclose(script);
+    }
 
     if (begin && end)
 	ret |= FOUND_LSB_HEADER;
@@ -1505,6 +1591,12 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
     /* Replace with headers from the script itself */
     ret |= scan_lsb_headers(dfd, path, cache, ignore);
 
+    /* Do not override the upstarts defaults, if we allow this
+     * we have to change name to the link name otherwise the
+     * name is always "upstart-job" */
+    if (ret & FOUND_LSB_UPSTART)
+	goto out;
+
     /* Load values if the override file exist */
     if ((ret & FOUND_LSB_HEADER) == 0)
 	ret |= load_overrides("/usr/share/insserv/overrides", name, cache, ignore);
@@ -1516,9 +1608,7 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
      * init.d scripts
      */
     ret |= load_overrides(override_path, name, cache, ignore);
-#ifdef SUSE
 out:
-#endif /* SUSE */
     free(name);
     return ret;
 }
@@ -2256,6 +2346,7 @@ static struct option long_options[] =
     {"force",	0, (int*)0, 'f'},
     {"path",	1, (int*)0, 'p'},
     {"override",1, (int*)0, 'o'},
+    {"upstart-job",1, (int*)0, 'u'},
     {"help",	0, (int*)0, 'h'},
     { 0,	0, (int*)0,  0 },
 };
@@ -2309,7 +2400,7 @@ int main (int argc, char *argv[])
     for (c = 0; c < argc; c++)
 	argr[c] = (char*)0;
 
-    while ((c = getopt_long(argc, argv, "c:dfrhvno:p:", long_options, (int *)0)) != -1) {
+    while ((c = getopt_long(argc, argv, "c:dfrhvno:p:u:", long_options, (int *)0)) != -1) {
 	size_t l;
 	switch (c) {
 	    case 'c':
@@ -2348,6 +2439,11 @@ int main (int argc, char *argv[])
 		    goto err;
 		override_path = optarg;
 		set_override = true;
+		break;
+	    case 'u':
+		if (optarg == (char*)0 || *optarg == '\0')
+		    goto err;
+		upstartjob_path = optarg;
 		break;
 	    case '?':
 	    err:
@@ -2605,17 +2701,55 @@ int main (int argc, char *argv[])
 	errno = 0;
 
 	/* d_type seems not to work, therefore use (l)stat(2) */
-	if (xstat(dfd, d->d_name, &st_script) < 0) {
+	if (xlstat(dfd, d->d_name, &st_script) < 0) {
 	    warn("can not stat(%s)\n", d->d_name);
 	    continue;
 	}
-	if (!S_ISREG(st_script.st_mode) || !(S_IXUSR & st_script.st_mode))
+	if ((!S_ISREG(st_script.st_mode) && !S_ISLNK(st_script.st_mode)) ||
+	    !(S_IXUSR & st_script.st_mode))
 	{
 	    if (S_ISDIR(st_script.st_mode))
 		continue;
 	    if (isarg)
 		warn("script %s is not an executable regular file, skipped!\n", d->d_name);
 	    continue;
+	}
+
+	/*
+	 * Do extra sanity checking of symlinks in init.d/ dir, except if it
+	 * is named reboot, as that is a special case on SUSE
+	 */
+	if (S_ISLNK(st_script.st_mode) && ((strcmp(d->d_name, "reboot") != 0)))
+	{
+	    char * base;
+	    char linkbuf[PATH_MAX+1];
+	    int  linklen;
+
+	    linklen = xreadlink(dfd, d->d_name, linkbuf, sizeof(linkbuf)-1);
+	    if (linklen < 0)
+		continue;
+	    linkbuf[linklen] = '\0';
+
+	    /* skip symbolic links to other scripts in this relative path */
+	    if (!(base = strrchr(linkbuf, '/'))) {
+		if (isarg)
+		    warn("script %s is a symlink to another script, skipped!\n",
+			 d->d_name);
+		continue;
+	    }
+
+	    /* stat the symlink target and make sure it is a valid script */
+	    if (xstat(dfd, d->d_name, &st_script) < 0)
+		continue;
+
+	    if (!S_ISREG(st_script.st_mode) || !(S_IXUSR & st_script.st_mode)) {
+		if (S_ISDIR(st_script.st_mode))
+		    continue;
+		if (isarg)
+		    warn("script %s is not an executable regular file, skipped!\n",
+			 d->d_name);
+		continue;
+	    }
 	}
 
 	if (!strncmp(d->d_name, "README", strlen("README"))) {

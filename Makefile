@@ -11,7 +11,7 @@ INSCONF  =	/etc/insserv.conf
 DEBUG	 =
 ISSUSE	 =	-DSUSE
 DESTDIR	 =
-VERSION	 =	1.13.0
+VERSION	 =	1.14.0
 DATE	 =	$(shell date +'%d%b%y' | tr '[:lower:]' '[:upper:]')
 
 #

@@ -4,6 +4,7 @@
 # Author: Werner Fink,  <werner@suse.de>
 #
 
+PACKAGE	 =	insserv
 INITDIR  =	/etc/init.d
 INSCONF  =	/etc/insserv.conf
 #DESTDIR =	/tmp/root
@@ -170,8 +171,13 @@ FILES	= README         \
 	  tests/suite    \
 	  insserv-$(VERSION).lsm
 
-dest:	clean
-	$(MKDIR) insserv-$(VERSION)/tests
+SVLOGIN=$(shell svn info | sed -rn '/Repository Root:/{ s|.*//(.*)\@.*|\1|p }')
+override TMP:=$(shell mktemp -d $(PACKAGE)-$(VERSION).XXXXXXXX)
+override TARBALL:=$(TMP)/$(PACKAGE)-$(VERSION).tar.bz2
+override SFTPBATCH:=$(TMP)/$(VERSION)-sftpbatch
+override LSM=$(TMP)/$(PACKAGE)-$(VERSION).lsm
+
+$(LSM):	$(TMP)/$(PACKAGE)-$(VERSION)
 	@echo -e "Begin3\n\
 Title:		insserv tool for boot scripts\n\
 Version:	$(VERSION)\n\
@@ -181,21 +187,40 @@ x 		by scanning comment headers which are LSB conform.\n\
 Keywords:	boot service control, LSB\n\
 Author:		Werner Fink <werner@suse.de>\n\
 Maintained-by:	Werner Fink <werner@suse.de>\n\
-Primary-site:	sunsite.unc.edu /pub/Linux/system/daemons/init\n\
-x		@UNKNOWN insserv-$(VERSION).tar.bz2\n\
+Primary-site:	http://download.savannah.gnu.org/releases/sysvinit/\n\
+x		@UNKNOWN $(PACKAGE)-$(VERSION).tar.bz2\n\
 Alternate-site:	ftp.suse.com /pub/projects/init\n\
 Platforms:	Linux with System VR2 or higher boot scheme\n\
 Copying-policy:	GPL\n\
-End" | sed 's@^ @@g;s@^x@@g' > insserv-$(VERSION).lsm
-	for file in $(FILES) ; do \
-	    case "$$file" in \
-	    tests/*) cp -p $$file insserv-$(VERSION)/tests/ ;; \
-	    *)	     cp -p $$file insserv-$(VERSION)/ ;; \
-	    esac; \
-	done
-	tar -cps -jf  insserv-$(VERSION).tar.bz2 insserv-$(VERSION)/
-	$(RMDIR)    insserv-$(VERSION)
-	set -- `find insserv-$(VERSION).tar.bz2 -printf '%s'` ; \
-	sed "s:@UNKNOWN:$$1:" < insserv-$(VERSION).lsm > \
-	insserv-$(VERSION).lsm.tmp ; \
-	mv insserv-$(VERSION).lsm.tmp insserv-$(VERSION).lsm
+End" | sed 's@^ @@g;s@^x@@g' > $(LSM)
+
+dest: $(LSM)
+
+upload: $(SFTPBATCH)
+	@echo sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/$(PACKAGE)
+	# rm -rf $(TMP)
+
+$(SFTPBATCH): $(TARBALL).sig
+	@echo progress > $@
+	@echo put $(TARBALL) >> $@
+	@echo chmod 644 $(TARBALL) >> $@
+	@echo put $(TARBALL).sig >> $@
+	@echo chmod 644 $(TARBALL).sig >> $@
+	@echo rm  $(PACKAGE)-latest.tar.bz2 >> $@
+	@echo symlink $(TARBALL) $(PACKAGE)-latest.tar.bz2 >> $@
+	@echo quit >> $@
+
+$(TARBALL).sig: $(TARBALL)
+	@gpg -q -ba --use-agent -o $@ $<
+
+$(TARBALL): $(TMP)/$(PACKAGE)-$(VERSION) $(LSM)
+	@tar --bzip2 --owner=nobody --group=nobody -cf $@ -C $(TMP) $(PACKAGE)-$(VERSION)
+	@set -- `find $@ -printf '%s'` ; \
+	 sed "s:@UNKNOWN:$$1:" < $(LSM) > $(LSM).tmp ; \
+	 mv $(LSM).tmp $(LSM)
+
+$(TMP)/$(PACKAGE)-$(VERSION): .svn
+	svn export . $@
+	@chmod -R a+r,u+w,og-w $@
+	@find $@ -type d | xargs -r chmod a+rx,u+w,og-w
+

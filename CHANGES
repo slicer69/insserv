@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 28 15:29:23 CEST 2010 - werner@suse.de
+
+- Use savannah as primary site
+
+-------------------------------------------------------------------
 Fri Feb 19 13:36:50 CET 2010 - werner@suse.de
 
 - Adopt upstart-job patch to be able to support traditional sysv

@@ -198,7 +198,8 @@ dest: $(LSM)
 
 upload: $(SFTPBATCH)
 	@echo sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/$(PACKAGE)
-	# rm -rf $(TMP)
+	mv $(TARBALL) $(LSM) .
+	rm -rf $(TMP)
 
 $(SFTPBATCH): $(TARBALL).sig
 	@echo progress > $@

@@ -197,7 +197,7 @@ End" | sed 's@^ @@g;s@^x@@g' > $(LSM)
 dest: $(LSM)
 
 upload: $(SFTPBATCH)
-	@sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/$(PACKAGE)
+	@sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/sysvinit
 	mv $(TARBALL) $(LSM) .
 	rm -rf $(TMP)
 

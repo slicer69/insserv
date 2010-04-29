@@ -197,18 +197,18 @@ End" | sed 's@^ @@g;s@^x@@g' > $(LSM)
 dest: $(LSM)
 
 upload: $(SFTPBATCH)
-	@sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/$(PACKAGE)
+	@sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/sysvinit
 	mv $(TARBALL) $(LSM) .
 	rm -rf $(TMP)
 
 $(SFTPBATCH): $(TARBALL).sig
 	@echo progress > $@
 	@echo put $(TARBALL) >> $@
-	@echo chmod 644 $(TARBALL) >> $@
+	@echo chmod 644 $(notdir $(TARBALL)) >> $@
 	@echo put $(TARBALL).sig >> $@
-	@echo chmod 644 $(TARBALL).sig >> $@
+	@echo chmod 644 $(notdir $(TARBALL)).sig >> $@
 	@echo rm  $(PACKAGE)-latest.tar.bz2 >> $@
-	@echo symlink $(TARBALL) $(PACKAGE)-latest.tar.bz2 >> $@
+	@echo symlink $(notdir $(TARBALL)) $(PACKAGE)-latest.tar.bz2 >> $@
 	@echo quit >> $@
 
 $(TARBALL).sig: $(TARBALL)

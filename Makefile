@@ -172,6 +172,7 @@ FILES	= README         \
 	  insserv-$(VERSION).lsm
 
 SVLOGIN=$(shell svn info | sed -rn '/Repository Root:/{ s|.*//(.*)\@.*|\1|p }')
+ifeq ($(MAKECMDGOALS),upload)
 override TMP:=$(shell mktemp -d $(PACKAGE)-$(VERSION).XXXXXXXX)
 override TARBALL:=$(TMP)/$(PACKAGE)-$(VERSION).tar.bz2
 override SFTPBATCH:=$(TMP)/$(VERSION)-sftpbatch
@@ -224,4 +225,4 @@ $(TMP)/$(PACKAGE)-$(VERSION): .svn
 	svn export . $@
 	@chmod -R a+r,u+w,og-w $@
 	@find $@ -type d | xargs -r chmod a+rx,u+w,og-w
-
+endif

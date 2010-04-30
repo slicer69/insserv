@@ -379,6 +379,8 @@ static inline char * xstrdup(const char *restrict s)
 #define SERV_NOSTOP	0x0100
 #define SERV_CMDLINE	0x0200
 #define SERV_FIRST	0x0400
+#define SERV_ENFORCE	0x0800
+#define SERV_WARNED	0x1000
 
 /*
  * Bits of the runlevels

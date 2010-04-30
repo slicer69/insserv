@@ -389,8 +389,8 @@ static void reversereq(service_t *restrict serv, uint bit, const char *restrict 
 /*
  * Check required services for name
  */
-static boolean chkrequired(service_t *restrict serv) attribute((nonnull(1)));
-static boolean chkrequired(service_t *restrict serv)
+static boolean chkrequired(service_t *restrict serv, const boolean recursive) attribute((nonnull(1)));
+static boolean chkrequired(service_t *restrict serv, const boolean recursive)
 {
     boolean ret = true;
     list_t * pos;
@@ -409,12 +409,23 @@ static boolean chkrequired(service_t *restrict serv)
 	must = getorig(must);
 
 	if ((must->attr.flags & (SERV_CMDLINE|SERV_ENABLED)) == 0) {
-	    warn("Service %s has to be enabled to start service %s\n",
-		 req->serv->name, serv->name);
+	    if (recursive) {
+		must->attr.flags |= SERV_ENFORCE;
+		continue;	/* Enabled this later even if not on command line */
+	    }
+	    if ((must->attr.flags & SERV_WARNED) == 0) {
+		warn("FATAL: service %s has to be enabled to use service %s\n",
+		     req->serv->name, serv->name);
+		must->attr.flags |= SERV_WARNED;
+	    }
 	    ret = false;
 	}
     }
 #if 0
+    /*
+     * Once we may use REQ_MUST for X-Start-Before and/or
+     * X-Stop-After we may enable this, see reversereq()
+     */
     if (serv->attr.flags & (SERV_CMDLINE|SERV_ENABLED))
 	goto out;
     np_list_for_each(pos, &serv->sort.rev) {
@@ -425,9 +436,8 @@ static boolean chkrequired(service_t *restrict serv)
 	    continue;
 	must = rev->serv;
 	must = getorig(must);
-
 	if (must->attr.flags & (SERV_CMDLINE|SERV_ENABLED)) {
-	    warn("Service %s has to be enabled to stop service %s\n",
+	    warn("FATAL: service %s has to be enabled to use service %s\n",
 		 serv->name, rev->serv->name);
 	    ret = false;
 	}
@@ -476,7 +486,7 @@ static boolean chkdependencies(service_t *restrict serv)
 	    if ((cur->attr.flags & SERV_CMDLINE) && (flags & SERV_CMDLINE))
 		continue;
 
-	    warn("Service %s has to be enabled to start service %s\n",
+	    warn("FATAL: service %s has to be enabled to use service %s\n",
 		 name, cur->name);
 	    ret = false;
 	}
@@ -1416,7 +1426,7 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 	char *name = basename(path);
 	if (*name == 'S' || *name == 'K')
 	    name += 3;
-	warn("Script %s is broken: missing end of LSB comment.\n", name);
+	warn("%sscript %s is broken: missing end of LSB comment.\n", ignore ? "" : "FATAL: ", name);
 	if (!ignore)
 	    error("exiting now!\n");
     }
@@ -1432,7 +1442,7 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 	char *name = basename(path);
 	if (*name == 'S' || *name == 'K')
 	    name += 3;
-	warn("Script %s is broken: incomplete LSB comment.\n", name);
+	warn("script %s is broken: incomplete LSB comment.\n", name);
 	if (!provides)
 	    warn("missing `Provides:' entry: please add.\n");
 	if (provides == empty)
@@ -2338,17 +2348,18 @@ out:
 
 static struct option long_options[] =
 {
-    {"verbose",	0, (int*)0, 'v'},
-    {"config",	1, (int*)0, 'c'},
-    {"dryrun",	0, (int*)0, 'n'},
-    {"default",	0, (int*)0, 'd'},
-    {"remove",	0, (int*)0, 'r'},
-    {"force",	0, (int*)0, 'f'},
-    {"path",	1, (int*)0, 'p'},
-    {"override",1, (int*)0, 'o'},
-    {"upstart-job",1, (int*)0, 'u'},
-    {"help",	0, (int*)0, 'h'},
-    { 0,	0, (int*)0,  0 },
+    {"verbose",	    0, (int*)0, 'v'},
+    {"config",	    1, (int*)0, 'c'},
+    {"dryrun",	    0, (int*)0, 'n'},
+    {"default",	    0, (int*)0, 'd'},
+    {"remove",	    0, (int*)0, 'r'},
+    {"force",	    0, (int*)0, 'f'},
+    {"path",	    1, (int*)0, 'p'},
+    {"override",    1, (int*)0, 'o'},
+    {"upstart-job", 1, (int*)0, 'u'},
+    {"recursive",   0, (int*)0, 'e'},
+    {"help",	    0, (int*)0, 'h'},
+    { 0,	    0, (int*)0,  0 },
 };
 
 static void help(const char *restrict const name) attribute((nonnull(1)));
@@ -2364,6 +2375,8 @@ static void help(const char *restrict const  name)
     printf("  -o <path>, --override <path> Path to replace " OVERRIDEDIR ".\n");
     printf("  -c <config>, --config <config>  Path to config file.\n");
     printf("  -n, --dryrun     Do not change the system, only talk about it.\n");
+    printf("  -u <path>, --upstart-job <path> Path to replace existing upstart job path.\n");
+    printf("  -e, --recursive  Expand and enable all required services.\n");
     printf("  -d, --default    Use default runlevels a defined in the scripts\n");
 }
 
@@ -2386,6 +2399,8 @@ int main (int argc, char *argv[])
     boolean defaults = false;
     boolean ignore = false;
     boolean loadarg = false;
+    boolean recursive = false;
+    boolean waserr = false;
 
     myname = basename(*argv);
 
@@ -2400,7 +2415,7 @@ int main (int argc, char *argv[])
     for (c = 0; c < argc; c++)
 	argr[c] = (char*)0;
 
-    while ((c = getopt_long(argc, argv, "c:dfrhvno:p:u:", long_options, (int *)0)) != -1) {
+    while ((c = getopt_long(argc, argv, "c:dfrhvno:p:u:e", long_options, (int *)0)) != -1) {
 	size_t l;
 	switch (c) {
 	    case 'c':
@@ -2444,6 +2459,9 @@ int main (int argc, char *argv[])
 		if (optarg == (char*)0 || *optarg == '\0')
 		    goto err;
 		upstartjob_path = optarg;
+		break;
+	    case 'e':
+		recursive = true;
 		break;
 	    case '?':
 	    err:
@@ -3000,8 +3018,10 @@ int main (int argc, char *argv[])
 		    if (!del || (del && !isarg))
 			warn("script %s: service %s already provided!\n", d->d_name, token);
 
-		    if (!del && !ignore && isarg)
-			error("exiting now!\n");
+		    if (!del && !ignore && isarg) {
+			waserr = true;
+			continue;
+		    }
 
 		    if (!del || (del && !ignore && !isarg))
 			continue;
@@ -3064,9 +3084,9 @@ int main (int argc, char *argv[])
 			if (del)
 			    ok = chkdependencies(service);
 			else
-			    ok = chkrequired(service);
+			    ok = chkrequired(service, recursive);
 			if (!ok && !ignore)
-			    error("exiting now!\n");
+			    waserr = true;
 		    }
 
 		    if (script_inf.default_start && script_inf.default_start != empty) {
@@ -3357,6 +3377,42 @@ int main (int argc, char *argv[])
     active_script();
 
     /*
+     * Check for recursive mode the existence of the required services
+     */
+    if (recursive && !del && !ignore) {
+	c = argc;
+	while (c--) {
+	    service_t * cur;
+	    list_t * ptr;
+	    cur = findservice(argv[c]);
+	    cur = getorig(cur);
+	    if (list_empty(&cur->sort.req))
+		continue;
+	    np_list_for_each(ptr, &cur->sort.req) {
+		req_t *req = getreq(ptr);
+		service_t * must;
+    
+		if ((req->flags & REQ_MUST) == 0)
+		    continue;
+		must = req->serv;
+		must = getorig(must);
+    
+		if (must->attr.flags & SERV_ENABLED)
+		    continue;
+    
+		if ((must->attr.flags & (SERV_ENFORCE|SERV_KNOWN)) == SERV_ENFORCE) {
+		    warn("Service %s has to exists for service %s\n",
+			req->serv->name, cur->name);
+		    waserr = true;
+		}
+	    }
+	}
+    }
+
+    if (waserr)
+	error("exiting now!\n");
+
+    /*
      * Sorry but we support only [KS][0-9][0-9]<name>
      */
     if (maxstart > MAX_DEEP || maxstop > MAX_DEEP)
@@ -3435,12 +3491,15 @@ int main (int argc, char *argv[])
 
 	script = (char*)0;
 	while ((serv = listscripts(&script, 'X', lvl))) {
-	    const boolean this = chkfor(script, argv, argc);
+	    boolean this = chkfor(script, argv, argc);
 	    boolean found, slink;
 	    char * clink;
 
 	    if (*script == '$')		/* Do not link in virtual dependencies */
 		continue;
+
+	    if ((serv->attr.flags & (SERV_ENFORCE|SERV_ENABLED)) == SERV_ENFORCE)
+		this = true;
 
 	    slink = false;
 	    if ((serv->start->lvl & lvl) == 0)
@@ -3616,13 +3675,16 @@ int main (int argc, char *argv[])
 
 	script = (char*)0;
 	while ((serv = listscripts(&script, 'X', seek))) {
-	    const boolean this = chkfor(script, argv, argc);
+	    boolean this = chkfor(script, argv, argc);
 	    boolean found;
 	    char * clink;
 	    char mode;
 
 	    if (*script == '$')		/* Do not link in virtual dependencies */
 		continue;
+
+	    if ((serv->attr.flags & (SERV_ENFORCE|SERV_ENABLED)) == SERV_ENFORCE) 
+		this = true;
 
 	    sprintf(olink, "../init.d/%s", script);
 	    if (serv->stopp->lvl & lvl) {

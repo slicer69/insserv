@@ -3401,7 +3401,7 @@ int main (int argc, char *argv[])
 		    continue;
     
 		if ((must->attr.flags & (SERV_ENFORCE|SERV_KNOWN)) == SERV_ENFORCE) {
-		    warn("Service %s has to exists for service %s\n",
+		    warn("FATAL: service %s has to exists for service %s\n",
 			req->serv->name, cur->name);
 		    waserr = true;
 		}

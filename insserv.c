@@ -1388,10 +1388,10 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 		description = empty;
 	}
 
-	if (!interactive    && regexecutor(&reg.interact,      COMMON_ARGS) == true) {
-	    if (val->rm_so < val->rm_eo) {
-		*(pbuf+val->rm_eo) = '\0';
-		interactive = xstrdup(pbuf+val->rm_so);
+	if (!interactive    && regexecutor(&reg.interact,  COMMON_SHD_ARGS) == true) {
+	    if (shl->rm_so < shl->rm_eo) {
+		*(pbuf+shl->rm_eo) = '\0';
+		interactive = xstrdup(pbuf+shl->rm_so);
 	    } else
 		interactive = empty;
 	}

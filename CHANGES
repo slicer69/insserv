@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 10 17:19:26 CEST 2010 - werner@suse.de
+
+- Sort dependency lists of the services that is the highest
+  dependencies first
+
+-------------------------------------------------------------------
 Fri May  7 17:15:02 CEST 2010 - werner@suse.de
 
 - Get the value instead the ``X-'' from interactive tag

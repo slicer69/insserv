@@ -534,7 +534,7 @@ out:
  * Sort linked list of provides into start or stop order
  * during this set new start or stop order of the serives.
  */
-#undef SORT_REQUESTS
+#define SORT_REQUESTS 1
 void lsort(const char type)
 {
     list_t sort = { &sort, &sort };
@@ -560,7 +560,7 @@ void lsort(const char type)
 	    if (serv->attr.flags & SERV_DUPLET)
 		continue;
 	    initial(&sort);
-	    for (order = 0; order <= maxstop; order++) {
+	    for (order = maxstop; order >= 0; order--) {
 		list_t * ptr, * safe;
 		list_for_each_safe(ptr, safe, &serv->sort.rev) {
 		    req_t * rev = getreq(ptr);
@@ -589,7 +589,7 @@ void lsort(const char type)
 	    if (serv->attr.flags & SERV_DUPLET)
 		continue;
 	    initial(&sort);
-	    for (order = 0; order <= maxstart; order++) {
+	    for (order = maxstart; order >= 0; order--) {
 		list_t * ptr, * safe;
 		list_for_each_safe(ptr, safe, &serv->sort.req) {
 		    req_t * req = getreq(ptr);

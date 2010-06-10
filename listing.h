@@ -181,6 +181,24 @@ static inline boolean list_empty(list_t *restrict head)
      return head->next == head;
 }
 
+static inline void move_head(list_t *restrict entry, list_t *restrict head) attribute((always_inline,nonnull(1,2)));
+static inline void move_head(list_t *restrict entry, list_t *restrict head)
+{
+    list_t * prev = entry->prev;
+    list_t * next = entry->next;
+
+    next->prev = prev;		/* remove enty from old list */
+    prev->next = next;
+
+    prev = head;
+    next = head->next;
+
+    next->prev = entry;		/* and add it at head of new list */
+    entry->next = next;
+    entry->prev = prev;
+    prev->next = entry;
+}
+
 static inline void move_tail(list_t *restrict entry, list_t *restrict head) attribute((always_inline,nonnull(1,2)));
 static inline void move_tail(list_t *restrict entry, list_t *restrict head)
 {

@@ -570,7 +570,7 @@ void lsort(const char type)
 			    req_t * this = getreq(chk);
 			    if (getdep(this)->stopp.deep != order)
 				break;			    /* added on tail always with same order */
-			    if (this->serv->dir == orig->dir) {
+			    if (getdep(this) == orig->dir) {
 				found = true;
 			    }
 			}
@@ -626,7 +626,7 @@ void lsort(const char type)
 			    req_t * this = getreq(chk);
 			    if (getdep(this)->start.deep != order)
 				break;			    /* added on tail always with same order */
-			    if (this->serv->dir == orig->dir) {
+			    if (getdep(this) == orig->dir) {
 				found = true;
 				break;
 			    }

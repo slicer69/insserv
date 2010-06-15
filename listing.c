@@ -534,13 +534,11 @@ out:
  * Sort linked list of provides into start or stop order
  * during this set new start or stop order of the serives.
  */
-#define SORT_REQUESTS 1
+#define getdep(req)    ((dir_t*)(req)->serv->dir)
 void lsort(const char type)
 {
     list_t sort = { &sort, &sort };
-#ifdef SORT_REQUESTS
-    list_t * this;
-#endif /* SORT_REQUESTS */
+    list_t * ptr, * safe, * this;
     int order;
 
     switch (type) {
@@ -554,24 +552,51 @@ void lsort(const char type)
 	    }
 	}
 	join(&sort, d_start);
-#ifdef SORT_REQUESTS
 	list_for_each(this, s_start) {
 	    service_t * serv = getservice(this);
 	    if (serv->attr.flags & SERV_DUPLET)
 		continue;
 	    initial(&sort);
 	    for (order = maxstop; order >= 0; order--) {
-		list_t * ptr, * safe;
 		list_for_each_safe(ptr, safe, &serv->sort.rev) {
 		    req_t * rev = getreq(ptr);
-		    dir_t * dir = (dir_t*)rev->serv->dir;
-		    if (dir->stopp.deep == order)
-			move_tail(ptr, &sort);
+		    dir_t * dir = getdep(rev);
+		    if (dir->stopp.deep == order) {
+			service_t *const orig = getorig(rev->serv);
+			list_t * chk;
+			boolean found = false;
+
+			list_for_each_prev(chk, &sort) {    /* check if service was already resorted */
+			    req_t * this = getreq(chk);
+			    if (getdep(this)->stopp.deep != order)
+				break;			    /* added on tail always with same order */
+			    if (this->serv->dir == orig->dir) {
+				found = true;
+			    }
+			}
+
+			if (!found) {
+			    if (rev->serv != orig) {	    /* replace alias with its original */
+				req_t *restrict this;
+				if (posix_memalign((void*)&this, sizeof(void*), alignof(req_t)) != 0)
+				    error("%s", strerror(errno));
+				memset(this, 0, alignof(req_t));
+				this->flags = rev->flags;
+				this->serv = orig;
+				replace(ptr, &this->list);
+				ptr = &this->list;
+				free(rev);
+			    }
+			    move_tail(ptr, &sort);
+			} else {			    /* already included */
+			    delete(ptr);
+			    free(rev);
+			}
+		    }
 		}
 	    }
 	    join(&sort, &serv->sort.rev);
 	}
-#endif /* SORT_REQUESTS */
 	break;
     default:
 	for (order = 0; order <= maxstart; order++) {
@@ -583,24 +608,52 @@ void lsort(const char type)
 	    }
 	}
 	join(&sort, d_start);
-#ifdef SORT_REQUESTS
 	list_for_each(this, s_start) {
 	    service_t * serv = getservice(this);
 	    if (serv->attr.flags & SERV_DUPLET)
 		continue;
 	    initial(&sort);
 	    for (order = maxstart; order >= 0; order--) {
-		list_t * ptr, * safe;
 		list_for_each_safe(ptr, safe, &serv->sort.req) {
 		    req_t * req = getreq(ptr);
-		    dir_t * dir = (dir_t*)req->serv->dir;
-		    if (dir->start.deep == order)
-			move_tail(ptr, &sort);
+		    dir_t * dir = getdep(req);
+		    if (dir->start.deep == order) {
+			service_t * orig = getorig(req->serv);
+			list_t * chk;
+			boolean found = false;
+
+			list_for_each_prev(chk, &sort) {    /* check if service was already resorted */
+			    req_t * this = getreq(chk);
+			    if (getdep(this)->start.deep != order)
+				break;			    /* added on tail always with same order */
+			    if (this->serv->dir == orig->dir) {
+				found = true;
+				break;
+			    }
+			}
+
+			if (!found) {
+			    if (req->serv != orig) {	    /* replace alias with its original */
+				req_t *restrict this;
+				if (posix_memalign((void*)&this, sizeof(void*), alignof(req_t)) != 0)
+				    error("%s", strerror(errno));
+				memset(this, 0, alignof(req_t));
+				this->flags = req->flags;
+				this->serv = orig;
+				replace(ptr, &this->list);
+				ptr = &this->list;
+				free(req);
+			    }
+			    move_tail(ptr, &sort);
+			} else {			    /* already included */
+			    delete(ptr);
+			    free(req);
+			}
+		    }
 		}
 	    }
 	    join(&sort, &serv->sort.req);
 	}
-#endif /* SORT_REQUESTS */
 	break;
     }
 

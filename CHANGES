@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun 15 14:05:31 CEST 2010 - werner@suse.de
+
+- Do not forget the aliases in the makefiles
+
+-------------------------------------------------------------------
 Thu Jun 10 17:19:26 CEST 2010 - werner@suse.de
 
 - Sort dependency lists of the services that is the highest

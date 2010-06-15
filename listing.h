@@ -158,6 +158,18 @@ static inline void delete(list_t *restrict entry)
     initial(entry);
 }
 
+/*
+ * Replace an entry by a new one.
+ */
+static inline void replace(list_t *restrict old, list_t *restrict new) attribute((always_inline,nonnull(1,2)));
+static inline void replace(list_t *restrict old, list_t *restrict new)
+{
+    new->next = old->next;
+    new->next->prev = new;
+    new->prev = old->prev;
+    new->prev->next = new;
+}
+
 static inline void join(list_t *restrict list, list_t *restrict head) attribute((always_inline,nonnull(1,2)));
 static inline void join(list_t *restrict list, list_t *restrict head)
 {

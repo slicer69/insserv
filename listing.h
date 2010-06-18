@@ -187,8 +187,8 @@ static inline void join(list_t *restrict list, list_t *restrict head)
     }
 }
 
-static inline boolean list_empty(list_t *restrict head) attribute((always_inline,nonnull(1)));
-static inline boolean list_empty(list_t *restrict head)
+static inline boolean list_empty(const list_t *restrict const head) attribute((always_inline,nonnull(1)));
+static inline boolean list_empty(const list_t *restrict const head)
 {
      return head->next == head;
 }

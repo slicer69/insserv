@@ -544,7 +544,6 @@ void lsort(const char type)
     switch (type) {
     case 'K':
 	for (order = 0; order <= maxstop; order++) {
-	    list_t * ptr, * safe;
 	    list_for_each_safe(ptr, safe, d_start) {
 		dir_t * dir = getdir(ptr);
 		if (dir->stopp.deep == order)
@@ -600,7 +599,6 @@ void lsort(const char type)
 	break;
     default:
 	for (order = 0; order <= maxstart; order++) {
-	    list_t * ptr, * safe;
 	    list_for_each_safe(ptr, safe, d_start) {
 		dir_t * dir = getdir(ptr);
 		if (dir->start.deep == order)
@@ -656,8 +654,6 @@ void lsort(const char type)
 	}
 	break;
     }
-
-
 }
 
 /*

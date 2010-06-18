@@ -26,6 +26,7 @@
 #define MINIMAL_MAKE	1	/* Remove disabled scripts from .depend.boot,
 				 * .depend.start, .depend.halt, and .depend.stop */
 #define MINIMAL_RULES	1	/* ditto */
+#define MINIMAL_DEPEND	1	/* Remove redundant dependencies */
 
 #include <pwd.h>
 #include <string.h>
@@ -748,7 +749,7 @@ static inline void makedep(void)
     FILE *halt;
 #endif /* USE_KILL_IN_BOOT */
     const char *target;
-    service_t *serv;
+    const service_t *serv;
 
     if (dryrun) {
 #ifdef USE_KILL_IN_BOOT
@@ -828,6 +829,10 @@ static inline void makedep(void)
 
     target = (char*)0;
     while ((serv = listscripts(&target, 'S', LVL_BOOT|LVL_ALL))) {
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	const service_t * lserv[100] = {0};
+	unsigned long lcnt = 0;
+#endif /* not MINIMAL_DEPEND */
 	boolean mark;
 	list_t * pos;
 
@@ -851,6 +856,10 @@ static inline void makedep(void)
 	np_list_for_each(pos, &serv->sort.req) {
 	    req_t * req = getreq(pos);
 	    service_t * dep = req->serv;
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	    boolean shadow = false;
+	    unsigned long n;
+#endif /* not MINIMAL_DEPEND */
 	    const char * name;
 
 	    if (!dep)
@@ -880,7 +889,36 @@ static inline void makedep(void)
 		fprintf(out, "%s:", target);
 		mark = true;
 	    }
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	    for (n = 0; n < lcnt && lserv[n] ; n++) {
+		list_t * red;
+		if (lserv[n]->attr.sorder <= dep->attr.sorder)
+		    break;
+		np_list_for_each(red, &(lserv[n])->sort.req) {
+		    req_t * other = getreq(red);
+		    if (other->serv->attr.flags & SERV_DUPLET)
+			continue;
+		    if (other->serv->attr.ref <= 0)
+			continue;
+		    if ((serv->start->lvl & other->serv->start->lvl) == 0)
+			continue;
+		    if (!other->serv->attr.script)
+			continue;
+		    if (other->serv != dep)
+			continue;
+		    shadow = true;
+		}
+	    }
+	    if (shadow)
+		continue;
+#endif /* not MINIMAL_DEPEND */
 	    fprintf(out, " %s", name);
+
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	    if (lcnt >= sizeof(lserv)/sizeof(lserv[0]))
+		continue;
+	    lserv[lcnt++] = dep;
+#endif /* not MINIMAL_DEPEND */
 	}
 
 	if (mark) fputc('\n', out);
@@ -937,6 +975,10 @@ static inline void makedep(void)
 
     target = (char*)0;
     while ((serv = listscripts(&target, 'K', (LVL_NORM|LVL_BOOT)))) {
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	const service_t * lserv[100] = {0};
+	unsigned long lcnt = 0;
+#endif /* not MINIMAL_DEPEND */
 	boolean mark;
 	list_t * pos;
 
@@ -963,6 +1005,10 @@ static inline void makedep(void)
 	np_list_for_each(pos, &serv->sort.rev) {
 	    req_t * rev = getreq(pos);
 	    service_t * dep = rev->serv;
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	    boolean shadow = false;
+	    unsigned long n;
+#endif /* not MINIMAL_DEPEND */
 	    const char * name;
 
 	    if (!dep)
@@ -986,7 +1032,36 @@ static inline void makedep(void)
 		fprintf(out, "%s:", target);
 		mark = true;
 	    }
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	    for (n = 0; n < lcnt && lserv[n]; n++) {
+		list_t * red;
+		if (lserv[n]->attr.korder <= dep->attr.korder)
+		    break;
+		np_list_for_each(red, &(lserv[n])->sort.rev) {
+		    req_t * other = getreq(red);
+		    if (other->serv->attr.flags & SERV_DUPLET)
+			continue;
+		    if (other->serv->attr.ref <= 0)
+			continue;
+		    if ((serv->start->lvl & other->serv->start->lvl) == 0)
+			continue;
+		    if (!other->serv->attr.script)
+			continue;
+		    if (other->serv != dep)
+			continue;
+		    shadow = true;
+		}
+	    }
+	    if (shadow)
+		continue;
+#endif /* not MINIMAL_DEPEND */
 	    fprintf(out, " %s", name);
+
+#if defined(MINIMAL_DEPEND) && (MINIMAL_DEPEND != 0)
+	    if (lcnt >= sizeof(lserv)/sizeof(lserv[0]))
+		continue;
+	    lserv[lcnt++] = dep;
+#endif /* not MINIMAL_DEPEND */
 	}
 	if (mark) fputc('\n', out);
     }

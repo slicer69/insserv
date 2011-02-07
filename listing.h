@@ -64,8 +64,7 @@ typedef unsigned int uint;
  *
  * on the appropiate architecture (here on i686 for i586).
  */
-static inline void prefetch(const void *restrict x) attribute((used,always_inline));
-static inline void prefetch(const void *restrict x)
+extern inline void attribute((used,__gnu_inline__,always_inline,__artificial__)) prefetch(const void *restrict x)
 {
 #if   defined(__x86_64__)
     asm volatile ("prefetcht0 %0"  :: "m" (*(unsigned long *)x))
@@ -91,6 +90,8 @@ static inline void prefetch(const void *restrict x)
 		  "   \n664:\n"
 		  ".previous"
 		  :: "i" ((0*32+25)), "r" (x))
+#else
+    __builtin_prefetch ((x), 0, 1);
 #endif
     ;
 }

@@ -2421,6 +2421,55 @@ out:
 }
 #endif /* SUSE */
 
+/*
+ * systemd integration
+ */
+#define SYSTEMD_SERVICE_PATH "/lib/systemd/system"
+#define SYSTEMD_BINARY_PATH "/bin/systemd"
+
+static boolean is_overridden_by_systemd(const char *service) {
+    char *p;
+    boolean ret = false;
+
+    asprintf(&p, SYSTEMD_SERVICE_PATH "/%s.service", service);
+
+    if (access(p, F_OK) >= 0)
+       ret = true;
+    free(p);
+    return ret;
+}
+
+static void forward_to_systemd (const char *initscript, const char *verb, boolean alternative_root) {
+    const char *name;
+
+    /* systemd isn't installed, skipping */
+    if (access(SYSTEMD_BINARY_PATH, F_OK) < 0 || initscript == NULL)
+       return;
+
+    if (strncmp("boot.",initscript,5) == 0)
+       name = initscript+5;
+    else
+       name = initscript;
+
+    if (is_overridden_by_systemd (name)) {
+       char *p;
+       int err = 0;
+       if (alternative_root) 
+          asprintf (&p, "/bin/systemctl --root %s %s %s.service", root, verb, name);
+       else
+          asprintf (&p, "/bin/systemctl %s %s.service", verb, name);
+
+       warn("Note: sysvinit service %s is shadowed by systemd %s.service,\nForwarding request to '%s'.\n", initscript, name, p);
+       if (!dryrun)
+          err = system(p);
+       if (err < 0)
+          warn("Failed to forward service request to systemctl: %m\n");
+       else if (err > 0)
+          warn("Forward service request to systemctl returned error status : %d\n",err);
+       free (p);
+    }
+}
+
 static struct option long_options[] =
 {
     {"verbose",	    0, (int*)0, 'v'},
@@ -2658,6 +2707,9 @@ int main (int argc, char *argv[])
 	if (argr[c])
 	    printf("Overwrite argument for %s is %s\n", argv[c], argr[c]);
 #endif /* DEBUG */
+
+    for (c = 0; c < argc; c++)
+           forward_to_systemd (argv[c], del ? "disable": "enable", path != ipath);
 
     /*
      * Scan and set our configuration for virtual services.
@@ -3495,18 +3547,28 @@ int main (int argc, char *argv[])
 			}
 			clvl &= ~mlvl;
 			if ((must->attr.flags & SERV_WARNED) == 0)
+#ifdef OSCBUILD
+			    warn("Service %s is missed in the runlevels %s to use service %s\n",
+				must->name, lvl2str(clvl), cur->name);
+#else
 			    warn("FATAL: service %s is missed in the runlevels %s to use service %s\n",
 				must->name, lvl2str(clvl), cur->name);
-			must->attr.flags |= SERV_WARNED;
 			waserr = true;
+#endif
+			must->attr.flags |= SERV_WARNED;
 			continue;
 		    }
 		    if ((must->attr.flags & (SERV_ENFORCE|SERV_KNOWN)) == SERV_ENFORCE) {
 			if ((must->attr.flags & SERV_WARNED) == 0)
+#ifdef OSCBUILD
+			    warn("Service %s has to exists for service %s\n",
+				must->name, cur->name);
+#else
 			    warn("FATAL: service %s has to exists for service %s\n",
 				must->name, cur->name);
-			must->attr.flags |= SERV_WARNED;
 			waserr = true;
+#endif
+			must->attr.flags |= SERV_WARNED;
 			continue;
 		    }
 		    if (recursive) {
@@ -3518,11 +3580,16 @@ int main (int argc, char *argv[])
 		}
 		if ((cur->attr.flags & SERV_ENABLED) == 0)
 		    continue;
-		if ((must->attr.flags & SERV_KNOWN) == 0) {
+		if ((must->attr.flags & (SERV_CMDLINE|SERV_KNOWN)) == 0) {
 		    if ((must->attr.flags & SERV_WARNED) == 0)
+#ifdef OSCBUILD
+			warn("Service %s has to exists for service %s\n",
+			    must->name, cur->name);
+#else
 			warn("FATAL: service %s has to exists for service %s\n",
 			    must->name, cur->name);
 		    waserr = true;
+#endif
 		    must->attr.flags |= SERV_WARNED;
 		    continue;
 		}
@@ -3536,10 +3603,15 @@ int main (int argc, char *argv[])
 			continue;
 		    clvl &= ~mlvl;
 		    if ((must->attr.flags & SERV_WARNED) == 0)
+#ifdef OSCBUILD
+			warn("Service %s is missed in the runlevels %s to use service %s\n",
+			    must->name, lvl2str(clvl), cur->name);
+#else
 			warn("FATAL: service %s is missed in the runlevels %s to use service %s\n",
 			    must->name, lvl2str(clvl), cur->name);
-		    must->attr.flags |= SERV_WARNED;
 		    waserr = true;
+#endif
+		    must->attr.flags |= SERV_WARNED;
 		}
 	    }
 	}

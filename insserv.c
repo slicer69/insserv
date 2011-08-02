@@ -2705,7 +2705,7 @@ int main (int argc, char *argv[])
      * Scan scripts found in the command line to be able to resolve
      * all dependcies given within those scripts.
      */
-    if (argc > 1) for (c = 0; c < argc; c++) {
+    for (c = 0; c < argc; c++) {
 	const char *const name = argv[c];
 	service_t * first = (service_t*)0;
 	char * provides, * begin, * token;
@@ -3452,32 +3452,93 @@ int main (int argc, char *argv[])
     active_script();
 
     /*
-     * Check for recursive mode the existence of the required services
+     * Check if runlevels of required scripts are a real subset
+     * of the services handled here.
      */
-    if (recursive && !del && !ignore) {
-	c = argc;
-	while (c--) {
-	    service_t * cur;
-	    list_t * ptr;
-	    cur = findservice(argv[c]);
+    if (!del && !ignore) {
+	list_t * ptr;
+	list_for_each(ptr, s_start) {
+	    service_t * cur = getservice(ptr);
+	    ushort clvl = cur->start->lvl & ~LVL_SINGLE;
+	    list_t * pos;
+
 	    cur = getorig(cur);
 	    if (list_empty(&cur->sort.req))
 		continue;
-	    np_list_for_each(ptr, &cur->sort.req) {
-		req_t *req = getreq(ptr);
+
+	    np_list_for_each(pos, &cur->sort.req) {
+		req_t *req = getreq(pos);
 		service_t * must;
-    
+
 		if ((req->flags & REQ_MUST) == 0)
 		    continue;
 		must = req->serv;
 		must = getorig(must);
-    
-		if (must->attr.flags & SERV_ENABLED)
+
+		/*
+		 * Check for recursive mode the existence of the required services
+		 */
+		if (cur->attr.flags & SERV_CMDLINE) {
+
+		    if (must->attr.flags & SERV_ENABLED) {
+			ushort mlvl = must->start->lvl & ~LVL_SINGLE;
+
+			if ((mlvl & LVL_BOOT) && (clvl & LVL_BOOT) == 0)
+			    continue;
+
+			if ((mlvl & clvl) == clvl)
+			    continue;
+			if (recursive) {
+			    must->start->lvl |= clvl;
+			    must->stopp->lvl |= clvl;
+			    continue;
+			}
+			clvl &= ~mlvl;
+			if ((must->attr.flags & SERV_WARNED) == 0)
+			    warn("FATAL: service %s is missed in the runlevels %s to use service %s\n",
+				must->name, lvl2str(clvl), cur->name);
+			must->attr.flags |= SERV_WARNED;
+			waserr = true;
+			continue;
+		    }
+		    if ((must->attr.flags & (SERV_ENFORCE|SERV_KNOWN)) == SERV_ENFORCE) {
+			if ((must->attr.flags & SERV_WARNED) == 0)
+			    warn("FATAL: service %s has to exists for service %s\n",
+				must->name, cur->name);
+			must->attr.flags |= SERV_WARNED;
+			waserr = true;
+			continue;
+		    }
+		    if (recursive) {
+			must->start->lvl |= clvl;
+			must->stopp->lvl |= clvl;
+			continue;
+		    }
 		    continue;
-    
-		if ((must->attr.flags & (SERV_ENFORCE|SERV_KNOWN)) == SERV_ENFORCE) {
-		    warn("FATAL: service %s has to exists for service %s\n",
-			req->serv->name, cur->name);
+		}
+		if ((cur->attr.flags & SERV_ENABLED) == 0)
+		    continue;
+		if ((must->attr.flags & SERV_KNOWN) == 0) {
+		    if ((must->attr.flags & SERV_WARNED) == 0)
+			warn("FATAL: service %s has to exists for service %s\n",
+			    must->name, cur->name);
+		    waserr = true;
+		    must->attr.flags |= SERV_WARNED;
+		    continue;
+		}
+		if (must->attr.flags & SERV_ENABLED) {
+		    ushort mlvl = must->start->lvl & ~LVL_SINGLE;
+
+		    if ((mlvl & LVL_BOOT) && (clvl & LVL_BOOT) == 0)
+			continue;
+
+		    if ((mlvl & clvl) == clvl)
+			continue;
+		    clvl &= ~mlvl;
+		    if ((must->attr.flags & SERV_WARNED) == 0)
+			warn("FATAL: service %s is missed in the runlevels %s to use service %s\n",
+			    must->name, lvl2str(clvl), cur->name);
+		    must->attr.flags |= SERV_WARNED;
 		    waserr = true;
 		}
 	    }

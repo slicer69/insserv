@@ -178,13 +178,13 @@ static inline void join(list_t *restrict list, list_t *restrict head)
 
     if (first != list) {
 	list_t * last = list->prev;
-       	list_t * at = head->next;
+	list_t * at = head->next;
 
-       	first->prev = head;
-       	head->next = first;
+	first->prev = head;
+	head->next = first;
 
-       	last->next = at;
-       	at->prev = last;
+	last->next = at;
+	at->prev = last;
     }
 }
 

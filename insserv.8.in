@@ -270,6 +270,9 @@ Specify path to init.d directory.  Useful for testing.
 .BR \-n ,\  \-\-dryrun
 Do not update symlinks.
 .TP
+.BR \-s ,\  \-\-showall
+Output runlevel and sequence information. Do not update symlinks.
+.TP
 .BR \-r ,\  \-\-remove
 Remove the listed scripts from all runlevels.
 .TP

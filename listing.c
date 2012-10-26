@@ -938,7 +938,6 @@ boolean is_loop_detected(void)
 /*
  * For debuging: show all services
  */
-#if defined(DEBUG) && (DEBUG > 0)
 void show_all()
 {
     list_t *tmp;
@@ -953,15 +952,23 @@ void show_all()
 	name = dir->name;
 	peg  = &dir->stopp;
 	lvl  = peg->run.lvl;
+	lvlstr = lvl2str(lvl);
 	deep = peg->deep;
 	if (attof(dir)->script)
 	    script = attof(dir)->script;
+#if defined(DEBUG) && (DEBUG > 0)
 	else if (*name == '$')
 	    script = "%system";
 	else
 	    script = "%guessed";
-	lvlstr = lvl2str(lvl);
-	info("K%.2d %s 0x%.2x '%s' (%s)\n", deep, name, lvl, lvlstr, script);
+	info(1, "K%.2d %s 0x%.2x '%s' (%s)\n", deep, name, lvl, lvlstr,
+	     script);
+#else
+	else
+	    script = NULL;
+	if (script && lvlstr)
+	    fprintf(stdout, "K:%.2d:%s:%s\n", deep, lvlstr, script);
+#endif
 	xreset(lvlstr);
     }
     if (maxstart > 0) list_for_each(tmp, d_start) {
@@ -975,19 +982,26 @@ void show_all()
 	name = dir->name;
 	peg  = &dir->start;
 	lvl  = peg->run.lvl;
+	lvlstr = lvl2str(lvl);
 	deep = peg->deep;
 	if (attof(dir)->script)
 	    script = attof(dir)->script;
+#if defined(DEBUG) && (DEBUG > 0)
 	else if (*name == '$')
 	    script = "%system";
 	else
 	    script = "%guessed";
-	lvlstr = lvl2str(lvl);
-	info("S%.2d %s 0x%.2x '%s' (%s)\n", deep, name, lvl, lvlstr, script);
+	info(1, "S%.2d %s 0x%.2x '%s' (%s)\n", deep, name, lvl, lvlstr,
+	     script);
+#else
+	else
+	    script = NULL;
+	if (script && lvlstr)
+	    fprintf(stdout, "S:%.2d:%s:%s\n", deep, lvlstr, script);
+#endif
 	xreset(lvlstr);
     }
 }
-#endif
 
 /*
  * Used within loops to get scripts not included in this runlevel
@@ -1038,8 +1052,8 @@ service_t * listscripts(const char **restrict script, const char mode, const ush
 	prefetch(tmp->next);
 	dir = getdir(tmp);
 
-        attof(dir)->korder = dir->stopp.deep;
-        attof(dir)->sorder = dir->start.deep;
+	attof(dir)->korder = dir->stopp.deep;
+	attof(dir)->sorder = dir->start.deep;
 
 	serv = dir->serv;
 	*script = serv->attr.script;

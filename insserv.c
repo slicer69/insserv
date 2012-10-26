@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
@@ -45,6 +46,12 @@
 #include <errno.h>
 #include <limits.h>
 #include <getopt.h>
+#if defined(__linux__)
+# include <linux/magic.h>
+#endif
+#if !defined(CGROUP_SUPER_MAGIC)
+# define CGROUP_SUPER_MAGIC	0x27e0eb
+#endif
 #if defined(USE_RPMLIB) && (USE_RPMLIB > 0)
 # include <rpm/rpmlib.h>
 # include <rpm/rpmmacro.h>
@@ -1563,7 +1570,7 @@ static char * scriptname(int dfd, const char *restrict const path, char **restri
     linkbuf[PATH_MAX] = '\0';
 
     do {
-        struct stat st;
+	struct stat st;
 	int linklen;
 
 	if (deep++ > MAXSYMLINKS) {
@@ -1629,7 +1636,7 @@ static uchar load_overrides(const char *restrict const dir,
 	error("snprintf(): %s\n", strerror(errno));
 
     if (stat(fullpath, &statbuf) == 0 && S_ISREG(statbuf.st_mode))
-        ret = scan_lsb_headers(-1, fullpath, cache, ignore);
+	ret = scan_lsb_headers(-1, fullpath, cache, ignore);
     if (ret & FOUND_LSB_HEADER)
 	ret |= FOUND_LSB_OVERRIDE;
     return ret;
@@ -1673,27 +1680,38 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
     }
 #endif /* SUSE */
 
-    /* Replace with headers from the script itself */
-    ret |= scan_lsb_headers(dfd, path, cache, ignore);
-
-    /* Do not override the upstarts defaults, if we allow this
-     * we have to change name to the link name otherwise the
-     * name is always "upstart-job" */
-    if (ret & FOUND_LSB_UPSTART)
-	goto out;
-
-    /* Load values if the override file exist */
-    if ((ret & FOUND_LSB_HEADER) == 0)
-	ret |= load_overrides("/usr/share/insserv/overrides", name, cache, ignore);
-    else
-	ret |= FOUND_LSB_DEFAULT;
+    if (is_upstart_job(path) != (char*)0) {
+	/*
+	 * Do not override the upstarts defaults, if we allow this
+	 * we have to change name to the link name otherwise the
+	 * name is always "upstart-job"
+	 */
+	ret |= scan_lsb_headers(dfd, path, cache, ignore);
+	if (ret & FOUND_LSB_UPSTART)
+	    goto out;
+    }
 
     /*
      * Allow host-specific overrides to replace the content in the
      * init.d scripts
      */
     ret |= load_overrides(override_path, name, cache, ignore);
+    if (ret & FOUND_LSB_OVERRIDE)
+	goto out;
+
+    /*
+     * Load third-party-specific values if the override file exist
+     */
+    ret |= load_overrides("/usr/share/insserv/overrides", name, cache, ignore);
+    if (ret & FOUND_LSB_OVERRIDE)
+	goto out;
+
+    /*
+     * Replace with headers from the script itself
+     */
+    ret |= scan_lsb_headers(dfd, path, cache, ignore);
 out:
+    ret |= FOUND_LSB_DEFAULT;
     free(name);
     return ret;
 }
@@ -1808,7 +1826,7 @@ ushort str2lvl(const char *restrict lvl)
 	if (!strpbrk(token, "0123456sSbB"))
 	    continue;
 
-        ret |= map_key_to_lvl(*token);
+	ret |= map_key_to_lvl(*token);
     }
 
     return ret;
@@ -2431,10 +2449,11 @@ static boolean is_overridden_by_systemd(const char *service) {
     char *p;
     boolean ret = false;
 
-    asprintf(&p, SYSTEMD_SERVICE_PATH "/%s.service", service);
+    if (asprintf(&p, SYSTEMD_SERVICE_PATH "/%s.service", service) < 0)
+	error("asprintf(): %s\n", strerror(errno));
 
     if (access(p, F_OK) >= 0)
-       ret = true;
+	ret = true;
     free(p);
     return ret;
 }
@@ -2444,29 +2463,39 @@ static void forward_to_systemd (const char *initscript, const char *verb, boolea
 
     /* systemd isn't installed, skipping */
     if (access(SYSTEMD_BINARY_PATH, F_OK) < 0 || initscript == NULL)
-       return;
+	return;
 
     if (strncmp("boot.",initscript,5) == 0)
-       name = initscript+5;
+	name = initscript+5;
     else
-       name = initscript;
+	name = initscript;
 
     if (is_overridden_by_systemd (name)) {
-       char *p;
-       int err = 0;
-       if (alternative_root) 
-          asprintf (&p, "/bin/systemctl --root %s %s %s.service", root, verb, name);
-       else
-          asprintf (&p, "/bin/systemctl %s %s.service", verb, name);
+	char *p;
+	int err = 0;
 
-       warn("Note: sysvinit service %s is shadowed by systemd %s.service,\nForwarding request to '%s'.\n", initscript, name, p);
-       if (!dryrun)
-          err = system(p);
-       if (err < 0)
-          warn("Failed to forward service request to systemctl: %m\n");
-       else if (err > 0)
-          warn("Forward service request to systemctl returned error status : %d\n",err);
-       free (p);
+	if (alternative_root && root)
+	    err = asprintf (&p, "/bin/systemctl --quiet --no-reload --root %s %s %s.service", root, verb, name);
+	else {
+	    struct statfs stfs;
+	    if (statfs("/sys/fs/cgroup/systemd", &stfs) < 0 && errno != ENOENT)
+		error("statfs(): %s\n", strerror(errno));
+	    if (errno == 0 && stfs.f_type == CGROUP_SUPER_MAGIC)
+		err = asprintf (&p, "/bin/systemctl --quiet %s %s.service", verb, name);
+	    else
+		err = asprintf (&p, "/bin/systemctl --quiet --no-reload %s %s.service", verb, name);
+	}
+	if (err < 0)
+	    error("asprintf(): %s\n", strerror(errno));
+
+	warn("Note: sysvinit service %s is shadowed by systemd %s.service,\nForwarding request to '%s'.\n", initscript, name, p);
+	if (!dryrun)
+	    err = system(p);
+	if (err < 0)
+	    warn("Failed to forward service request to systemctl: %m\n");
+	else if (err > 0)
+	    warn("Forward service request to systemctl returned error status : %d\n",err);
+	free (p);
     }
 }
 
@@ -2482,6 +2511,7 @@ static struct option long_options[] =
     {"override",    1, (int*)0, 'o'},
     {"upstart-job", 1, (int*)0, 'u'},
     {"recursive",   0, (int*)0, 'e'},
+    {"showall",	    0, (int*)0, 's'},
     {"help",	    0, (int*)0, 'h'},
     { 0,	    0, (int*)0,  0 },
 };
@@ -2499,6 +2529,7 @@ static void help(const char *restrict const  name)
     printf("  -o <path>, --override <path> Path to replace " OVERRIDEDIR ".\n");
     printf("  -c <config>, --config <config>  Path to config file.\n");
     printf("  -n, --dryrun     Do not change the system, only talk about it.\n");
+    printf("  -s, --showall    Output runlevel and sequence information.\n");
     printf("  -u <path>, --upstart-job <path> Path to replace existing upstart job path.\n");
     printf("  -e, --recursive  Expand and enable all required services.\n");
     printf("  -d, --default    Use default runlevels a defined in the scripts\n");
@@ -2524,6 +2555,7 @@ int main (int argc, char *argv[])
     boolean ignore = false;
     boolean loadarg = false;
     boolean recursive = false;
+    boolean showall = false;
     boolean waserr = false;
 
     myname = basename(*argv);
@@ -2539,7 +2571,7 @@ int main (int argc, char *argv[])
     for (c = 0; c < argc; c++)
 	argr[c] = (char*)0;
 
-    while ((c = getopt_long(argc, argv, "c:dfrhvno:p:u:e", long_options, (int *)0)) != -1) {
+    while ((c = getopt_long(argc, argv, "c:dfrhvno:p:u:es", long_options, (int *)0)) != -1) {
 	size_t l;
 	switch (c) {
 	    case 'c':
@@ -2562,6 +2594,10 @@ int main (int argc, char *argv[])
 		break;
 	    case 'n':
 		verbose ++;
+		dryrun = true;
+		break;
+	    case 's':
+		showall = true;
 		dryrun = true;
 		break;
 	    case 'p':
@@ -2708,8 +2744,11 @@ int main (int argc, char *argv[])
 	    printf("Overwrite argument for %s is %s\n", argv[c], argr[c]);
 #endif /* DEBUG */
 
+#ifdef SUSE
+    if (!underrpm())
+#endif
     for (c = 0; c < argc; c++)
-           forward_to_systemd (argv[c], del ? "disable": "enable", path != ipath);
+	forward_to_systemd (argv[c], del ? "disable": "enable", path != ipath);
 
     /*
      * Scan and set our configuration for virtual services.
@@ -3625,6 +3664,9 @@ int main (int argc, char *argv[])
      */
     if (maxstart > MAX_DEEP || maxstop > MAX_DEEP)
 	error("Maximum of %u in ordering reached\n", MAX_DEEP);
+
+    if (showall)
+	show_all();
 
 #if defined(DEBUG) && (DEBUG > 0)
     printf("Maxorder %d/%d\n", maxstart, maxstop);

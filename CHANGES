@@ -1,4 +1,58 @@
 -------------------------------------------------------------------
+Fri Oct 26 11:14:05 UTC 2012 - werner@suse.de
+
+- Add showall patch from Debian developer Kel Modderman
+
+-------------------------------------------------------------------
+Mon Sep 24 14:05:44 UTC 2012 - werner@suse.de
+
+- Avoid warnings if there exsists LSB tags for a script in the
+  override locations (fate #314069) 
+
+-------------------------------------------------------------------
+Fri Nov 18 14:40:21 UTC 2011 - werner@suse.de
+
+- Do not enforce service reload in case of an other root files
+  system no in case of not having systemd running (bnc#728947)  
+
+-------------------------------------------------------------------
+Fri Aug 19 13:57:29 UTC 2011 - werner@suse.de
+
+- We should forward to systemctl when running under rpm (this is
+  supposed to be handled outside insserv) (from Frederic Crozat)
+- When insserv is called with full path of initscript
+  ("insserv /etc/init.d/acpid") , systemctl was called with a "null"
+  alternative root (from Frederic Crozat).
+ 
+-------------------------------------------------------------------
+Tue Aug  2 12:18:51 UTC 2011 - werner@suse.de
+
+- Enable insserv to support systemd services if shadowed by systemd
+
+-------------------------------------------------------------------
+Fri Feb 25 17:39:37 CET 2011 - werner@suse.de
+
+- Skip `FATAL' key word from messages currently nonfatal
+
+-------------------------------------------------------------------
+Thu Feb 10 12:49:14 CET 2011 - werner@suse.de
+
+- Linked lists: support prefetch of next pointer address for all
+  architectures
+
+-------------------------------------------------------------------
+Tue Nov 30 11:03:21 CET 2010 - werner@suse.de
+
+- Make temporary the new dependency checks nonfatal
+
+-------------------------------------------------------------------
+Fri Nov 26 15:50:35 CET 2010 - werner@suse.de
+
+- Warn if dependencies are not done in all runlevel
+- Ignore real boot scripts for runlevel services as those
+  are already enabled.
+
+-------------------------------------------------------------------
 Fri Jun 18 18:08:54 CEST 2010 - werner@suse.de
 
 - Remove redundant dependencies in the .depend.* makefiles

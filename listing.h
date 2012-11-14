@@ -54,6 +54,9 @@ typedef unsigned int uint;
 #ifndef  attribute
 # define attribute(attr)	__attribute__(attr)
 #endif
+#ifndef offsetof
+# define offsetof(type,memb)	__builtin_offsetof(type,memb)
+#endif
 
 /*
  * This is lent from the kernel by e.g. using
@@ -412,6 +415,7 @@ static inline char * xstrdup(const char *restrict s)
 #define SERV_FIRST	0x0400
 #define SERV_ENFORCE	0x0800
 #define SERV_WARNED	0x1000
+#define SERV_SYSTEMD	0x2000
 
 /*
  * Bits of the runlevels

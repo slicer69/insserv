@@ -23,6 +23,12 @@
  *
  */
 
+/*
+ * Systemd integration
+ */
+#define SYSTEMD_SERVICE_PATH	"/lib/systemd/system"
+#define SYSTEMD_BINARY_PATH	"/bin/systemd"
+
 #define MINIMAL_MAKE	1	/* Remove disabled scripts from .depend.boot,
 				 * .depend.start, .depend.halt, and .depend.stop */
 #define MINIMAL_RULES	1	/* ditto */
@@ -60,6 +66,7 @@
 # include <sys/mount.h>
 #endif /* SUSE */
 #include "listing.h"
+#include "systemd.h"
 
 #if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) >= 600
 # ifndef POSIX_FADV_SEQUENTIAL
@@ -105,7 +112,11 @@ static inline void oneway(char *restrict stop)
 # define INSCONF	"/etc/insserv.conf"
 #endif
 
-const char *upstartjob_path = "/lib/init/upstart-job";
+/* Upstart suport */
+static const char *upstartjob_path = "/lib/init/upstart-job";
+
+/* Systemd support */
+static DBusConnection *sbus;
 
 /*
  * For a description of regular expressions see regex(7).
@@ -158,6 +169,10 @@ static boolean dryrun = false;
 /* When paths set do not add root if any */
 static boolean set_override = false;
 static boolean set_insconf = false;
+
+/* Wether systemd is active or not */
+static boolean systemd = false;
+static boolean is_overridden_by_systemd(const char *);
 
 /* Search results points here */
 typedef struct lsb_struct {
@@ -250,13 +265,18 @@ out:
  * Linked list of system facilities services and their replacment
  */
 typedef struct string {
-    int *restrict ref;
+    list_t     s_list;
+    int		  ref;
     char	*name;
 } __align string_t;
+#define getfstr(arg)	list_entry((arg), struct string, s_list)
 
 typedef struct repl {
     list_t     r_list;
-    string_t	 r[1];
+    struct {
+	string_t   *addr;
+	const char *name;
+    };
     ushort	flags;
 } __align repl_t;
 #define getrepl(arg)	list_entry((arg), struct repl, r_list)
@@ -268,6 +288,7 @@ typedef struct faci {
 } __align faci_t;
 #define getfaci(arg)	list_entry((arg), struct faci, list)
 
+static list_t facistr = { &facistr, &facistr }, *facistr_start = &facistr;
 static list_t sysfaci = { &sysfaci, &sysfaci }, *sysfaci_start = &sysfaci;
 
 /*
@@ -345,7 +366,7 @@ static void rememberreq(service_t * restrict serv, uint bit, const char * restri
 		if (!strcmp(token, getfaci(ptr)->name)) {
 		    list_t * lst;
 		    np_list_for_each(lst, &getfaci(ptr)->replace)
-			rememberreq(serv, bit, getrepl(lst)->r[0].name);
+			rememberreq(serv, bit, getrepl(lst)->name);
 		    break;
 		}
 	    }
@@ -385,7 +406,7 @@ static void reversereq(service_t *restrict serv, uint bit, const char *restrict 
 		if (!strcmp(token, getfaci(ptr)->name)) {
 		    list_t * lst;
 		    np_list_for_each(lst, &getfaci(ptr)->replace)
-			reversereq(serv, bit, getrepl(lst)->r[0].name);
+			reversereq(serv, bit, getrepl(lst)->name);
 		    break;
 		}
 	    }
@@ -1336,6 +1357,7 @@ static char *is_upstart_job(const char *path)
 #define FOUND_LSB_DEFAULT  0x02
 #define FOUND_LSB_OVERRIDE 0x04
 #define FOUND_LSB_UPSTART  0x08
+#define FOUND_LSB_SYSTEMD  0x10
 
 static int o_flags = O_RDONLY;
 
@@ -1679,6 +1701,16 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
 	goto out;
     }
 #endif /* SUSE */
+
+    if (systemd) {
+	const char *serv;
+	serv = path;
+	if (strncmp("boot.", serv, 5) == 0)
+	    serv += 5;
+	if (is_overridden_by_systemd(serv)) {
+	    ret |= FOUND_LSB_SYSTEMD;
+	}
+    }
 
     if (is_upstart_job(path) != (char*)0) {
 	/*
@@ -2070,57 +2102,51 @@ static void scan_conf_file(const char *restrict file)
 		real = pbuf+val->rm_so;
 	    }
 	    if (virt) {
-		list_t * ptr;
-		boolean found = false;
+		list_t *ptr;
+		list_t *r_list = (list_t*)0;
 		list_for_each(ptr, sysfaci_start) {
 		    if (!strcmp(getfaci(ptr)->name, virt)) {
-			found = true;
-			if(real) {
-			    list_t * r_list = &getfaci(ptr)->replace;
-			    char * token;
-			    while ((token = strsep(&real, delimeter))) {
-				repl_t *restrict subst;
-				string_t * r;
-				if (posix_memalign((void*)&subst, sizeof(void*), alignof(repl_t)) != 0)
-				    error("%s", strerror(errno));
-				insert(&subst->r_list, r_list->prev);
-				subst->flags = 0;
-				r = &subst->r[0];
-				if (posix_memalign((void*)&r->ref, sizeof(void*), alignof(typeof(r->ref))+strsize(token)) != 0)
-				    error("%s", strerror(errno));
-				*r->ref = 1;
-				r->name = ((char*)(r->ref))+alignof(typeof(r->ref));
-				strcpy(r->name, token);
-			    }
-			}
+			r_list = &getfaci(ptr)->replace;
 			break;
 		    }
 		}
-		if (!found) {
+		if (!r_list) {
 		    faci_t *restrict this;
 		    if (posix_memalign((void*)&this, sizeof(void*), alignof(faci_t)) != 0)
 			error("%s", strerror(errno));
 		    else {
-			list_t * r_list = &this->replace;
-			char * token;
-			r_list->next = r_list;
-			r_list->prev = r_list;
+			r_list = &this->replace;
+			initial(r_list);
 			insert(&this->list, sysfaci_start->prev);
 			this->name = xstrdup(virt);
-			while ((token = strsep(&real, delimeter))) {
-			    repl_t *restrict subst;
-			    string_t * r;
-			    if (posix_memalign((void*)&subst, sizeof(void*), alignof(repl_t)) != 0)
-				error("%s", strerror(errno));
-			    insert(&subst->r_list, r_list->prev);
-			    subst->flags = 0;
-			    r = &subst->r[0];
-			    if (posix_memalign((void*)&r->ref, sizeof(void*), alignof(typeof(r->ref))+strsize(token)) != 0)
-				error("%s", strerror(errno));
-			    *r->ref = 1;
-			    r->name = ((char*)(r->ref))+alignof(typeof(r->ref));
-			    strcpy(r->name, token);
+		    }
+		}
+		if(real) {
+		    char *token;
+		    while ((token = strsep(&real, delimeter))) {
+			repl_t *restrict subst;
+			string_t *r = (string_t*)0;
+			if (posix_memalign((void*)&subst, sizeof(void*), alignof(repl_t)) != 0)
+			    error("%s", strerror(errno));
+			insert(&subst->r_list, r_list->prev);
+			subst->flags = 0;
+			list_for_each(ptr, facistr_start) {
+			    if (strcmp(getfstr(ptr)->name, token) == 0) {
+				r = getfstr(ptr);
+				break;
+			    }
 			}
+			if (!r) {
+			    if (posix_memalign((void*)&r, sizeof(void*), alignof(string_t)+strsize(token)) != 0)
+				error("%s", strerror(errno));
+			    r->ref = 1;
+			    insert(&r->s_list, facistr_start);
+			    r->name = ((char*)r)+alignof(string_t);
+			    strcpy(r->name, token);
+			} else
+			    r->ref++;
+			subst->addr = r;
+			subst->name = r->name;
 		    }
 		}
 	    }
@@ -2243,69 +2269,218 @@ static void scan_conf(const char *restrict file)
     regfree(&creg.isactive);
 }
 
-static void expand_faci(list_t *restrict rlist, list_t *restrict head,
-			int *restrict deep) attribute((noinline,nonnull(1,2,3)));
-static void expand_faci(list_t *restrict rlist, list_t *restrict head, int *restrict deep)
-{
-	repl_t * rent = getrepl(rlist);
-	list_t * tmp, * safe, * ptr = (list_t*)0;
+/*
+ * Maps between systemd and SystemV
+ */
+static const char* sdmap[] = {
+    "$local-fs",	"$local_fs",
+    "$remote-fs",	"$remote_fs",
+    "cryptsetup",	"boot.crypto-early",
+    "udev",		"boot.udev",
+    "multipathd",	"boot.multipath",
+    "loadmodules",	"boot.loadmodules",
+    "device-mapper",	"boot.device-mapper",
+    "sysctl",		"boot.sysctl",
+    "fsck-root",	"boot.rootfsck",
+    "localfs",		"boot.localfs"
+};
 
-	list_for_each(tmp, sysfaci_start) {
-	    if (!strcmp(getfaci(tmp)->name, rent->r[0].name)) {
-		ptr = &getfaci(tmp)->replace;
+/*
+ *  Here the systemd targets are imported as system facilities 
+ */
+static void import_systemd_facilities(void)
+{
+    list_t *ptr;
+    list_for_each(ptr, &sdservs) {
+	sdserv_t *sdserv = list_entry(ptr, sdserv_t, s_list);
+	const char *facilitiy;
+	list_t *r_list;
+	list_t *iptr;
+	int n;
+
+	if (*sdserv->name != '$')
+	    continue;
+
+	facilitiy = sdserv->name;
+	for (n = 0; n < (int)(sizeof(sdmap)/sizeof(sdmap[0])); n += 2) {
+	    if (strcmp(sdmap[n], facilitiy) == 0) {
+		facilitiy = sdmap[n+1];
 		break;
 	    }
 	}
 
-	if (!ptr || list_empty(ptr)) {
-	    delete(rlist);
-	    if (--(*rent->r[0].ref) <= 0)
-		free(rent->r[0].ref);
-	    free(rent);
-	    goto out;
+	r_list = (list_t*)0;
+	np_list_for_each(iptr, sysfaci_start) {
+	    if (strcmp(getfaci(iptr)->name, facilitiy) == 0) {
+		r_list = &getfaci(iptr)->replace;
+		break;
+	    }
+	}
+	if (!r_list) {
+	    faci_t *restrict this;
+	    if (posix_memalign((void*)&this, sizeof(void*), alignof(faci_t)) != 0)
+		error("%s", strerror(errno));
+	    else {
+		r_list = &this->replace;
+		initial(r_list);
+		insert(&this->list, sysfaci_start->prev);
+		this->name = xstrdup(facilitiy);
+	    }
 	}
 
-	list_for_each_safe(tmp, safe, ptr) {
-	    repl_t * rnxt = getrepl(tmp);
-	    if (rnxt->flags & 0x0001) {
-		error("Loop detected during expanding system facilities in the insserv.conf file(s): %s\n",
-		      rnxt->r[0].name);
-	    }
-	    if (*rnxt->r[0].name == '$') {
-		if (*deep > 10) {
-		    warn("The nested level of the system facilities in the insserv.conf file(s) is to large\n");
-		    goto out;
+	np_list_for_each(iptr, &sdserv->a_list) {
+	    ally_t *ally = list_entry(iptr, ally_t, a_list);
+	    repl_t *restrict subst;
+	    string_t *r = (string_t*)0;
+	    const char *token;
+	    list_t *fptr;
+
+	    if (ally->flags & SDREL_CONFLICTS)
+		continue;
+	    if (ally->flags & SDREL_BEFORE)
+		continue;
+
+	    token = ally->serv->name;
+	    for (n = 0; n < (int)(sizeof(sdmap)/sizeof(sdmap[0])); n += 2) {
+		if (strcmp(sdmap[n], token) == 0) {
+		    token = sdmap[n+1];
+		    break;
 		}
-		(*deep)++;
-		rnxt->flags |= 0x0001;
-		expand_faci(tmp, head, deep);
-		rnxt->flags &= ~0x0001;
-		(*deep)--;
-	    } else if (*deep > 0) {
-		repl_t *restrict subst;
-		if (posix_memalign((void*)&subst, sizeof(void*), alignof(repl_t)) != 0)
+	    }
+
+	    if (posix_memalign((void*)&subst, sizeof(void*), alignof(repl_t)) != 0)
+		error("%s", strerror(errno));
+	    insert(&subst->r_list, r_list->prev);
+	    subst->flags = 0;
+	    np_list_for_each(fptr, facistr_start) {
+		if (strcmp(getfstr(fptr)->name, token) == 0) {
+		    r = getfstr(fptr);
+		    break;
+		}
+	    }
+	    if (!r) {
+		if (posix_memalign((void*)&r, sizeof(void*), alignof(string_t)+strsize(token)) != 0)
 		    error("%s", strerror(errno));
-		insert(&subst->r_list, head->prev);
-		subst->r[0] = rnxt->r[0];
-		(*subst->r[0].ref) = 1;
+		r->ref = 1;
+		insert(&r->s_list, facistr_start);
+		r->name = ((char*)r)+alignof(string_t);
+		strcpy(r->name, token);
+	    } else
+		    r->ref++;
+	    subst->addr = r;
+	    subst->name = r->name;
+	}
+    }
+}
+
+/*
+ *  Here the systemd servies are imported as services
+ */
+static void import_systemd_services(void)
+{
+    list_t *ptr;
+    list_for_each(ptr, &sdservs) {
+	sdserv_t *sdserv = list_entry(ptr, sdserv_t, s_list);
+	const char *this;
+	list_t *aptr;
+	int n;
+
+	if (*sdserv->name == '$')
+	    continue;
+
+	this = sdserv->name;
+	for (n = 0; n < (int)(sizeof(sdmap)/sizeof(sdmap[0])); n += 2) {
+	    if (strcmp(sdmap[n], this) == 0) {
+		this = sdmap[n+1];
+		break;
 	    }
 	}
+
+	np_list_for_each(aptr, &sdserv->a_list) {
+	    ally_t *ally = list_entry(aptr, ally_t, a_list);
+	    service_t * service;
+	    const char *token;
+
+	    if (ally->flags & SDREL_CONFLICTS)
+		continue;
+	    if (ally->flags & SDREL_BEFORE)
+		continue;
+
+	    token = ally->serv->name;
+	    for (n = 0; n < (int)(sizeof(sdmap)/sizeof(sdmap[0])); n += 2) {
+		if (strcmp(sdmap[n], token) == 0) {
+		    token = sdmap[n+1];
+		    break;
+		}
+	    }
+	    service = addservice(this);
+	    rememberreq(service, (ally->flags & SDREL_WANTS) ? REQ_SHLD : REQ_MUST, token);
+	    service->attr.flags |= SERV_SYSTEMD;
+	}
+    }
+}
+
+static void expand_faci(list_t *restrict rlist, list_t *restrict head,
+			int *restrict deep) attribute((noinline,nonnull(1,2,3)));
+static void expand_faci(list_t *restrict rlist, list_t *restrict head, int *restrict deep)
+{
+    repl_t *rent = getrepl(rlist);
+    list_t *tmp, *safe, *ptr = (list_t*)0;
+
+    list_for_each(tmp, sysfaci_start) {
+	if (!strcmp(getfaci(tmp)->name, rent->name)) {
+	    ptr = &getfaci(tmp)->replace;
+	    break;
+	}
+    }
+
+    if (!ptr || list_empty(ptr))
+	goto out;
+
+    list_for_each_safe(tmp, safe, ptr) {
+	repl_t *rnxt = getrepl(tmp);
+	if (rnxt->flags & 0x0001) {
+	    error("Loop detected during expanding system facilities in the insserv.conf file(s): %s %s\n",
+		  rnxt->name, getrepl(head->prev)->name);
+	}
+	if (*rnxt->name == '$') {
+	    if (*deep > 10) {
+		warn("The nested level of the system facilities in the insserv.conf file(s) is to large\n");
+		goto out;
+	    }
+	    (*deep)++;
+	    rnxt->flags |= 0x0001;
+	    expand_faci(tmp, head, deep);
+	    rnxt->flags &= ~0x0001;
+	    (*deep)--;
+	} else if (*deep >= 0) {
+	    repl_t *restrict subst;
+	    if (posix_memalign((void*)&subst, sizeof(void*), alignof(repl_t)) != 0)
+		error("%s", strerror(errno));
+	    insert(&subst->r_list, head->prev);
+	    subst->addr = rnxt->addr;
+	    subst->name = rnxt->name;
+	    subst->addr->ref++;
+	}
+    }
 out:
-	return;
+    return;
 }
 
 static inline void expand_conf(void)
 {
     list_t *ptr;
     list_for_each(ptr, sysfaci_start) {
-	list_t * rlist, * safe, * head = &getfaci(ptr)->replace;
+	list_t *rlist, *safe, *head = &getfaci(ptr)->replace;
 	list_for_each_safe(rlist, safe, head) {
-	    repl_t * tmp = getrepl(rlist);
-	    if (*tmp->r[0].name == '$') {
+	    repl_t *tmp = getrepl(rlist);
+	    if (*tmp->name == '$') {
 		int deep = 0;
-		tmp->flags |= 0x0001;
-		expand_faci(rlist, rlist, &deep);
-		tmp->flags &= ~0x0001;
+		expand_faci(rlist, head, &deep);
+		delete(rlist);
+		if (--(tmp->addr->ref) <= 0)
+		    free(tmp->addr);
+		free(tmp);
 	    }
 	}
     }
@@ -2440,11 +2615,8 @@ out:
 #endif /* SUSE */
 
 /*
- * systemd integration
+ * Systemd integration
  */
-#define SYSTEMD_SERVICE_PATH "/lib/systemd/system"
-#define SYSTEMD_BINARY_PATH "/bin/systemd"
-
 static boolean is_overridden_by_systemd(const char *service) {
     char *p;
     boolean ret = false;
@@ -2461,8 +2633,7 @@ static boolean is_overridden_by_systemd(const char *service) {
 static void forward_to_systemd (const char *initscript, const char *verb, boolean alternative_root) {
     const char *name;
 
-    /* systemd isn't installed, skipping */
-    if (access(SYSTEMD_BINARY_PATH, F_OK) < 0 || initscript == NULL)
+    if (initscript == NULL)
 	return;
 
     if (strncmp("boot.",initscript,5) == 0)
@@ -2747,8 +2918,18 @@ int main (int argc, char *argv[])
 #ifdef SUSE
     if (!underrpm())
 #endif
-    for (c = 0; c < argc; c++)
-	forward_to_systemd (argv[c], del ? "disable": "enable", path != ipath);
+    /*
+     * Systemd support
+     */
+    if (access(SYSTEMD_BINARY_PATH, F_OK) == 0 && (sbus = systemd_open_conn())) {
+
+	for (c = 0; c < argc; c++)
+	    forward_to_systemd (argv[c], del ? "disable": "enable", path != ipath);
+
+	(void)systemd_get_tree(sbus);
+	systemd_close_conn(sbus);
+	systemd = true;
+    }
 
     /*
      * Scan and set our configuration for virtual services.
@@ -2756,9 +2937,45 @@ int main (int argc, char *argv[])
     scan_conf(insconf);
 
     /*
+     * Handle Systemd target as system facilities (<name>.target -> $<name>)
+     */
+    if (systemd)
+	import_systemd_facilities();
+
+    {
+	list_t *ptr;
+	list_for_each(ptr, sysfaci_start) {
+	    list_t *iptr, *head = &getfaci(ptr)->replace;
+	    printf("%s : ", getfaci(ptr)->name);
+	    np_list_for_each(iptr, head)
+		printf("%s ", getrepl(iptr)->name);
+	    printf("\n");
+	}
+    }
+
+    /*
      * Expand system facilities to real services
      */
     expand_conf();
+
+    {
+	list_t *ptr;
+	list_for_each(ptr, sysfaci_start) {
+	    list_t *iptr, *head = &getfaci(ptr)->replace;
+	    printf("%s : ", getfaci(ptr)->name);
+	    np_list_for_each(iptr, head)
+		printf("%s ", getrepl(iptr)->name);
+	    printf("\n");
+	}
+    }
+
+    /*
+     * Handle Systemd services (<name>.service -> <name>)
+     */
+    if (systemd) {
+	import_systemd_services();
+	systemd_free();		/* Not used anymore */
+    }
 
     /*
      * Initialize the regular scanner for the scripts.
@@ -3557,6 +3774,9 @@ int main (int argc, char *argv[])
 	    if (list_empty(&cur->sort.req))
 		continue;
 
+	    if (cur->attr.flags & SERV_SYSTEMD)
+		continue;
+
 	    np_list_for_each(pos, &cur->sort.req) {
 		req_t *req = getreq(pos);
 		service_t * must;
@@ -3565,6 +3785,9 @@ int main (int argc, char *argv[])
 		    continue;
 		must = req->serv;
 		must = getorig(must);
+
+		if (must->attr.flags & SERV_SYSTEMD)
+		    continue;
 
 		/*
 		 * Check for recursive mode the existence of the required services

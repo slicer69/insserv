@@ -86,6 +86,7 @@ static list_t * d_start = &dirs;
 #define DIR_LOOP	0x0002
 #define DIR_LOOPREPORT	0x0004
 #define DIR_MAXDEEP	0x0008
+#define DIR_SYSTEMD	0x0010
 
 /*
  * The linked list off all services, note that the d_list
@@ -942,14 +943,19 @@ void show_all()
 {
     list_t *tmp;
     if (maxstop > 0) list_for_each(tmp, d_start) {
-	char * script, *name, *lvlstr;
+	char * script, *lvlstr;
+#if defined(DEBUG) && (DEBUG > 0)
+	char *name;
+#endif
 	dir_t * dir = getdir(tmp);
 	handle_t * peg;
 	uchar deep;
 	ushort lvl;
 	if (!dir)
 	    continue;
+#if defined(DEBUG) && (DEBUG > 0)
 	name = dir->name;
+#endif
 	peg  = &dir->stopp;
 	lvl  = peg->run.lvl;
 	lvlstr = lvl2str(lvl);
@@ -972,14 +978,19 @@ void show_all()
 	xreset(lvlstr);
     }
     if (maxstart > 0) list_for_each(tmp, d_start) {
-	char * script, *name, *lvlstr;
+	char * script, *lvlstr;
+#if defined(DEBUG) && (DEBUG > 0)
+	char *name;
+#endif
 	dir_t * dir = getdir(tmp);
 	handle_t * peg;
 	uchar deep;
 	ushort lvl;
 	if (!dir)
 	    continue;
+#if defined(DEBUG) && (DEBUG > 0)
 	name = dir->name;
+#endif
 	peg  = &dir->start;
 	lvl  = peg->run.lvl;
 	lvlstr = lvl2str(lvl);
@@ -1083,6 +1094,20 @@ service_t * listscripts(const char **restrict script, const char mode, const ush
 void requires(service_t *restrict this, service_t *restrict dep, const char mode)
 {
     ln_sf((dir_t*)this->dir, (dir_t*)dep->dir, mode);
+    if (this->attr.flags & SERV_SYSTEMD) {
+	dir_t *dir = (dir_t*)this->dir;
+	handle_t *peg = &dir->stopp;
+	peg->flags |= DIR_SYSTEMD;
+	peg = &dir->start;
+	peg->flags |= DIR_SYSTEMD;
+    }
+    if (dep->attr.flags & SERV_SYSTEMD) {
+	dir_t *dir = (dir_t*)dep->dir;
+	handle_t *peg = &dir->stopp;
+	peg->flags |= DIR_SYSTEMD;
+	peg = &dir->start;
+	peg->flags |= DIR_SYSTEMD;
+    }
 }
 
 /*
@@ -1090,7 +1115,7 @@ void requires(service_t *restrict this, service_t *restrict dep, const char mode
  */
 void runlevels(service_t *restrict serv, const char mode, const char *restrict lvl)
 {
-    dir_t * dir   = (dir_t *)serv->dir;
+    dir_t *dir   = (dir_t *)serv->dir;
     handle_t * peg = (mode == 'K') ? &dir->stopp : &dir->start;
     peg->run.lvl |= str2lvl(lvl);
 }

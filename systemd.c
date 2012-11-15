@@ -404,7 +404,8 @@ DBusConnection * systemd_open_conn(void)
 	bus = dbus_bus_get_private(DBUS_BUS_SYSTEM, &error);
 
     if (!bus) {
-	warn ("can not connect systemd: %s\n", error.message);
+	if (errno != ENOENT)
+	    warn ("can not connect systemd: %s\n", error.message);
 	goto err;
     }
     dbus_connection_set_exit_on_disconnect(bus, FALSE);

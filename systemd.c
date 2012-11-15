@@ -425,9 +425,9 @@ DBusConnection * systemd_open_conn(void)
     return bus;
 perm:
     warn ("can not connect to systemd: %m\n");
-err:
     dbus_connection_close(bus);
     dbus_connection_unref(bus);
+err:
     if (dbus_error_is_set(&error))
 	dbus_error_free(&error);
     return (DBusConnection*)0;

@@ -2942,32 +2942,10 @@ int main (int argc, char *argv[])
     if (systemd)
 	import_systemd_facilities();
 
-    {
-	list_t *ptr;
-	list_for_each(ptr, sysfaci_start) {
-	    list_t *iptr, *head = &getfaci(ptr)->replace;
-	    printf("%s : ", getfaci(ptr)->name);
-	    np_list_for_each(iptr, head)
-		printf("%s ", getrepl(iptr)->name);
-	    printf("\n");
-	}
-    }
-
     /*
      * Expand system facilities to real services
      */
     expand_conf();
-
-    {
-	list_t *ptr;
-	list_for_each(ptr, sysfaci_start) {
-	    list_t *iptr, *head = &getfaci(ptr)->replace;
-	    printf("%s : ", getfaci(ptr)->name);
-	    np_list_for_each(iptr, head)
-		printf("%s ", getrepl(iptr)->name);
-	    printf("\n");
-	}
-    }
 
     /*
      * Handle Systemd services (<name>.service -> <name>)

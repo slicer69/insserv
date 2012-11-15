@@ -12,7 +12,7 @@ INSCONF  =	/etc/insserv.conf
 DEBUG	 =
 ISSUSE	 =	-DSUSE
 DESTDIR	 =
-VERSION	 =	1.16.0
+VERSION	 =	1.16.1
 DATE	 =	$(shell date +'%d%b%y' | tr '[:lower:]' '[:upper:]')
 CFLDBUS	 =	$(shell pkg-config --cflags dbus-1)
 

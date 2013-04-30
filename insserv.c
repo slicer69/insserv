@@ -2863,7 +2863,7 @@ int main (int argc, char *argv[])
 	char * tmp;
 	if (*path != '/') {
 	    char * pwd = getcwd((char*)0, 0);
-	    size_t len = strlen(pwd)+1+strlen(path);
+	    size_t len = strlen(pwd)+2+strlen(path);
 	    root = (char*)malloc(len);
 	    if (!root)
 		error("%s", strerror(errno));

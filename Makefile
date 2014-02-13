@@ -115,7 +115,8 @@ endif
 
 .force:
 
-.PHONY:		clean
+.PHONY:		clean distclean
+distclean: clean
 clean:
 	$(RM) *.o *~ $(TODO) config.h .depend.* .system
 

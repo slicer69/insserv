@@ -1194,7 +1194,8 @@ static DIR * openrcdir(const char *restrict const rcpath)
 	if (errno == ENOENT) {
 	    info(1, "creating directory '%s'\n", rcpath);
 	    if (!dryrun)
-		mkdir(rcpath, (S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH));
+	        if (0 > mkdir(rcpath, (S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)))
+		    error("mkdir(%s, ...) failed: %s", rcpath, strerror(errno));
 	} else
 	    error("can not stat(%s): %s\n", rcpath, strerror(errno));
     }

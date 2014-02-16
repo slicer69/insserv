@@ -1,4 +1,38 @@
 -------------------------------------------------------------------
+Sun Feb 16 19:16:10 CET 2014 - pere@hungry.com
+
+- Next release will be 1.17.0.
+- Correct manual page, refer to init(8), not nonexisting init(7).
+- Fix scope after if test to match the indentation and probably the
+  intended behaviour.  Patch from Debian fixing BTS #736479.
+- Remove useless test checking for NULL==serv which is impossible
+  after a while test check it (Coverity CID 1174105).
+- Check exit value from mkdir() and report an error if it fail
+  (Coverity CID 1174104).
+- Make sure to check the return value from ftello() before passing it
+  to posix_fadvise() (Coverity CID 1174109).
+- Make sure to check if name is NULL before dereferencing it (Coverity
+  CID 1174114).
+- Exit with an error if getcwd() fail (Coverity CID 1174110).
+- Runlevel numbers above 8 is an error, exit when it happen instead of
+  reading outside the runlevel info array (Coverity CIDs 1174111,
+  1174112 and 1174113).
+- Document correct fall through cases (Coverity CIDs 1174107 and
+  1174108).
+- Make sure a 'distclean' target is available in the makefile.
+
+-------------------------------------------------------------------
+Tue Apr 30 10:20:58 CET 2013 - werner@suse.de
+
+- Fix buffer overrun (based on patch from Petr Ovtchenkov)
+
+-------------------------------------------------------------------
+Thu Nov 15 10:24:12 CET 2012 - werner@suse.de
+
+- Avoid warning about not existing systemd socket
+- Bug fix: do not close dbus connection which was never established
+
+-------------------------------------------------------------------
 Wed Nov 14 12:12:15 CET 2012 - werner@suse.de
 
 - Add systemd support

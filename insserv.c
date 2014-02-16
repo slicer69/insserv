@@ -319,6 +319,7 @@ static void rememberreq(service_t * restrict serv, uint bit, const char * restri
 	    token++;
 	    bit &= ~REQ_MUST;
 	    bit |=  REQ_SHLD;
+	    /* fall through */
 	default:
 	    req = addservice(token);
 	    if (bit & REQ_KILL) {
@@ -397,6 +398,7 @@ static void reversereq(service_t *restrict serv, uint bit, const char *restrict 
 	    token++;
 	    bit &= ~REQ_MUST;
 	    bit |=  REQ_SHLD;
+	    /* fall through */
 	default:
 	    rev = addservice(token);
 	    rememberreq(rev, bit, serv->name);

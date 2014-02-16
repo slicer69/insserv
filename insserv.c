@@ -808,8 +808,6 @@ static inline void makedep(void)
     target = (char*)0;
     fprintf(boot, "TARGETS =");
     while ((serv = listscripts(&target, 'S', LVL_BOOT))) {
-	if (!serv)
-	    continue;
 #if defined(MINIMAL_MAKE) && (MINIMAL_MAKE != 0)
 	if (serv->attr.ref <= 0)
 	    continue;
@@ -821,8 +819,6 @@ static inline void makedep(void)
     target = (char*)0;
     fprintf(start, "TARGETS =");
     while ((serv = listscripts(&target, 'S', LVL_ALL))) {	/* LVL_ALL: nearly all but not BOOT */
-	if (!serv)
-	    continue;
 #if defined(MINIMAL_MAKE) && (MINIMAL_MAKE != 0)
 	if (serv->attr.ref <= 0)
 	    continue;
@@ -836,8 +832,6 @@ static inline void makedep(void)
 
     target = (char*)0;
     while ((serv = listscripts(&target, 'S', LVL_BOOT|LVL_ALL))) {
-	if (!serv)
-	    continue;
 #if defined(MINIMAL_MAKE) && (MINIMAL_MAKE != 0)
 	if (serv->attr.ref <= 0)
 	    continue;
@@ -976,8 +970,6 @@ static inline void makedep(void)
     target = (char*)0;
     fprintf(stop, "TARGETS =");
     while ((serv = listscripts(&target, 'K', LVL_NORM))) {	/* LVL_NORM: nearly all but not BOOT and not SINGLE */
-	if (!serv)
-	    continue;
 #if defined(MINIMAL_MAKE) && (MINIMAL_MAKE != 0)
 	if (serv->attr.ref <= 0)
 	    continue;
@@ -990,8 +982,6 @@ static inline void makedep(void)
     target = (char*)0;
     fprintf(halt, "TARGETS =");
     while ((serv = listscripts(&target, 'K', LVL_BOOT))) {
-	if (!serv)
-	    continue;
 # if defined(MINIMAL_MAKE) && (MINIMAL_MAKE != 0)
 	if (serv->attr.ref <= 0)
 	    continue;
@@ -1010,8 +1000,6 @@ static inline void makedep(void)
 	boolean mark;
 	list_t * pos;
 
-	if (!serv)
-	    continue;
 #if defined(MINIMAL_RULES) && (MINIMAL_RULES != 0)
 	if (serv->attr.ref <= 0)
 	    continue;

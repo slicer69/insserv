@@ -459,7 +459,7 @@ with the help of
 @@BEGIN_SUSE@@
 .BR init.d (7),
 @@END_SUSE@@
-.BR init (7),
+.BR init (8),
 @@BEGIN_SUSE@@
 .BR startproc (8),
 .BR checkproc (8),

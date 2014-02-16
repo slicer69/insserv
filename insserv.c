@@ -1515,8 +1515,11 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 #if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) >= 600
 	if (cache) {
 	    off_t deep = ftello(script);
-	    (void)posix_fadvise(fd, 0, deep, POSIX_FADV_WILLNEED);
-	    (void)posix_fadvise(fd, deep, 0, POSIX_FADV_DONTNEED);
+	    if (-1 != deep) {
+	        (void)posix_fadvise(fd, 0, deep, POSIX_FADV_WILLNEED);
+		(void)posix_fadvise(fd, deep, 0, POSIX_FADV_DONTNEED);
+	    } else
+	        warn("ftello(%s) failed: %s\n", path, strerror(errno));
 	} else
 	    (void)posix_fadvise(fd, 0, 0, POSIX_FADV_NOREUSE);
 #endif

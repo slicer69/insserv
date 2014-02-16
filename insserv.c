@@ -866,8 +866,6 @@ static inline void makedep(void)
 	boolean mark;
 	list_t * pos;
 
-	if (!serv)
-	    continue;
 #if defined(MINIMAL_RULES) && (MINIMAL_RULES != 0)
 	if (serv->attr.ref <= 0)
 	    continue;

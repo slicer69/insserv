@@ -1805,7 +1805,7 @@ int map_has_runlevels(void)
 char map_runlevel_to_key(const int runlevel)
 {
     if (runlevel >= RUNLEVLES) {
-	warn("Wrong runlevel %d\n", runlevel);
+	error("Wrong runlevel %d\n", runlevel);
     }
     return runlevel_locations[runlevel].key;
 }
@@ -1818,14 +1818,14 @@ ushort map_key_to_lvl(const char key)
 	if (uckey == runlevel_locations[runlevel].key)
 	    return runlevel_locations[runlevel].lvl;
     }
-    warn("Wrong runlevel key '%c'\n", uckey);
+    error("Wrong runlevel key '%c'\n", uckey);
     return 0;
 }
 
 const char *map_runlevel_to_location(const int runlevel)
 {
     if (runlevel >= RUNLEVLES) {
-	warn("Wrong runlevel %d\n", runlevel);
+	error("Wrong runlevel %d\n", runlevel);
     }
     return runlevel_locations[runlevel].location;
 }
@@ -1833,7 +1833,7 @@ const char *map_runlevel_to_location(const int runlevel)
 ushort map_runlevel_to_lvl(const int runlevel)
 {
     if (runlevel >= RUNLEVLES) {
-	warn("Wrong runlevel %d\n", runlevel);
+	error("Wrong runlevel %d\n", runlevel);
     }
     return runlevel_locations[runlevel].lvl;
 }

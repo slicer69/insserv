@@ -2189,9 +2189,9 @@ static int cfgfile_filter(const struct dirent *restrict d)
     const char * name = d->d_name;
     const char * end;
 
-    if (*name == '.')
-	goto out;
     if (!name || (*name == '\0'))
+	goto out;
+    if (*name == '.')
 	goto out;
     if ((end = strrchr(name, '.'))) {
 	end++;

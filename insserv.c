@@ -4112,10 +4112,11 @@ int main (int argc, char *argv[])
 			serv->attr.flags &= ~SERV_ENABLED;
 #  endif /* USE_KILL_IN_BOOT */
 		} else if (del && ignore) {
-		    if (serv && (serv->attr.flags & SERV_ALREADY))
+		    if (serv && (serv->attr.flags & SERV_ALREADY)) {
 			xremove(dfd, d->d_name);
 			if (--serv->attr.ref <= 0)
 			    serv->attr.flags &= ~SERV_ENABLED;
+		    }
 		}
 	    }
 	}

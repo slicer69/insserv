@@ -1498,8 +1498,7 @@ static uchar scan_lsb_headers(const int dfd, const char *restrict const path,
 
     if (upstart_job) {
 	pclose(script);
-	free(upstart_job);
-	upstart_job = 0;
+	xreset(upstart_job);
     } else {
 #if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) >= 600
 	if (cache) {
@@ -1667,6 +1666,7 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
 {
     char * name = scriptname(dfd, path, first);
     uchar ret = 0;
+    char *upstart_job = (char*)0;
 
     if (!name)
 	return ret;
@@ -1704,7 +1704,8 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
 	}
     }
 
-    if (is_upstart_job(path) != (char*)0) {
+    if (NULL != (upstart_job = is_upstart_job(path))) {
+	xreset(upstart_job);
 	/*
 	 * Do not override the upstarts defaults, if we allow this
 	 * we have to change name to the link name otherwise the

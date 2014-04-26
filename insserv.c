@@ -212,7 +212,7 @@ typedef struct creg_struct {
 static lsb_t script_inf;
 static reg_t reg;
 static creg_t creg;
-static char empty[1] = "";
+char empty[1] = "";
 
 /* Delimeters used for spliting results with strsep(3) */
 const char *const delimeter = " ,;\t";

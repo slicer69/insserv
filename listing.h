@@ -348,8 +348,9 @@ static inline char * xstrdup(const char *restrict s)
     return r;
 } 
 
+extern char empty[];
 #define xreset(ptr)	\
-	{char *restrict tmp = (char *restrict)ptr; if (ptr && *tmp) free(ptr);} ptr = NULL
+	{ if (ptr && empty != ptr) free(ptr);} ptr = NULL
 
 #if defined(HAS_unlinkat) && defined(_ATFILE_SOURCE) && !defined(__stub_unlinkat)
 # define xremove(d,x) (__extension__ ({ if ((dryrun ? 0 : \

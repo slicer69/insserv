@@ -67,7 +67,7 @@ typedef unsigned int uint;
  *
  * on the appropiate architecture (here on i686 for i586).
  */
-extern inline void attribute((used,__gnu_inline__,always_inline,__artificial__)) prefetch(const void *restrict x)
+extern inline void attribute((used,__gnu_inline__,always_inline,)) prefetch(const void *restrict x)
 {
 #if   defined(__x86_64__)
     asm volatile ("prefetcht0 %0"  :: "m" (*(unsigned long *)x))

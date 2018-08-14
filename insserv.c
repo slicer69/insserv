@@ -1095,7 +1095,8 @@ char *myname = (char*)0;
 static void _logger (const char *restrict const fmt, va_list ap);
 static void _logger (const char *restrict const fmt, va_list ap)
 {
-    extension char buf[strlen(myname)+2+strlen(fmt)+1];
+    /* extension char buf[strlen(myname)+2+strlen(fmt)+1]; */
+    char buf[strlen(myname)+2+strlen(fmt)+1];
     strcat(strcat(strcpy(buf, myname), ": "), fmt);
     vfprintf(stderr, buf, ap);
     return;
@@ -2708,7 +2709,8 @@ int main (int argc, char *argv[])
     DIR * initdir;
     struct dirent *d;
     struct stat st_script;
-    extension char * argr[argc];
+    /* extension char * argr[argc]; */
+    char * argr[argc]; 
     char * path = INITDIR;
     char * override_path = OVERRIDEDIR;
     char * insconf = INSCONF;

@@ -30,8 +30,8 @@ else
 endif
 endif
 	 CFLAGS = -W -Wall -Wunreachable-code $(COPTS) $(DEBUG) $(LOOPS) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
-		  $(ISSUSE) -DINITDIR=\"$(INITDIR)\" -DINSCONF=\"$(INSCONF)\" -pipe
-	  CLOOP = -falign-loops=0
+		  $(ISSUSE) -DINITDIR=\"$(INITDIR)\" -DINSCONF=\"$(INSCONF)\" -pipe 
+	  CLOOP = # -falign-loops=0
 	LDFLAGS = -Wl,-O,3,--relax
 	   LIBS =
 ifdef USE_RPMLIB
@@ -40,7 +40,7 @@ ifdef USE_RPMLIB
 	   LIBS += -lrpm
 endif
 	   LIBS += $(shell pkg-config --libs dbus-1)
-	     CC = gcc
+	     CC ?= gcc
 	     RM = rm -f
 	  MKDIR = mkdir -p
 	  RMDIR = rm -rf
@@ -79,8 +79,8 @@ all:		$(TODO)
 insserv:	insserv.o listing.o systemd.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-listing.o:	listing.c listing.h config.h .system
-	$(CC) $(CFLAGS) $(CLOOP) -c $<
+listing.o:	listing.c insserv.c listing.h config.h .system
+	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) -c $<
 
 insserv.o:	insserv.c listing.h systemd.h config.h .system
 	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) -c $<

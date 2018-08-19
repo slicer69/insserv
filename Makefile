@@ -76,16 +76,19 @@ TODO	=	insserv insserv.8
 
 all:		$(TODO)
 
-insserv:	insserv.o listing.o systemd.o
+insserv:	insserv.o listing.o systemd.o map.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 listing.o:	listing.c insserv.c listing.h config.h .system
 	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) -c $<
 
-insserv.o:	insserv.c listing.h systemd.h config.h .system
+map.o:	map.c listing.h config.h .system
 	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) -c $<
 
-systemd.o:	systemd.c listing.h systemd.h config.h .system
+insserv.o:	insserv.c map.o listing.h systemd.h config.h .system
+	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) insserv.c -c 
+
+systemd.o:	systemd.c map.o listing.h systemd.h config.h .system
 	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) -c $<
 
 listing.h:	.system
@@ -182,7 +185,7 @@ FILES	= README         \
 SVLOGIN=$(shell svn info | sed -rn '/Repository Root:/{ s|.*//(.*)\@.*|\1|p }')
 ifeq ($(MAKECMDGOALS),upload)
 override TMP:=$(shell mktemp -d $(PACKAGE)-$(VERSION).XXXXXXXX)
-override TARBALL:=$(TMP)/$(PACKAGE)-$(VERSION).tar.bz2
+override TARBALL:=$(TMP)/$(PACKAGE)-$(VERSION).tar.xz
 override SFTPBATCH:=$(TMP)/$(VERSION)-sftpbatch
 override LSM=$(TMP)/$(PACKAGE)-$(VERSION).lsm
 
@@ -197,7 +200,7 @@ Keywords:	boot service control, LSB\n\
 Author:		Werner Fink <werner@suse.de>\n\
 Maintained-by:	Werner Fink <werner@suse.de>\n\
 Primary-site:	http://download.savannah.gnu.org/releases/sysvinit/\n\
-x		@UNKNOWN $(PACKAGE)-$(VERSION).tar.bz2\n\
+x		@UNKNOWN $(PACKAGE)-$(VERSION).tar.xz\n\
 Alternate-site:	ftp.suse.com /pub/projects/init\n\
 Platforms:	Linux with System VR2 or higher boot scheme\n\
 Copying-policy:	GPL\n\
@@ -216,21 +219,15 @@ $(SFTPBATCH): $(TARBALL).sig
 	@echo chmod 644 $(notdir $(TARBALL)) >> $@
 	@echo put $(TARBALL).sig >> $@
 	@echo chmod 644 $(notdir $(TARBALL)).sig >> $@
-	@echo rm  $(PACKAGE)-latest.tar.bz2 >> $@
-	@echo symlink $(notdir $(TARBALL)) $(PACKAGE)-latest.tar.bz2 >> $@
 	@echo quit >> $@
 
 $(TARBALL).sig: $(TARBALL)
 	@gpg -q -ba --use-agent -o $@ $<
 
-$(TARBALL): $(TMP)/$(PACKAGE)-$(VERSION) $(LSM)
-	@tar --bzip2 --owner=nobody --group=nobody -cf $@ -C $(TMP) $(PACKAGE)-$(VERSION)
+$(TARBALL): clean
+	@tar --xz --owner=nobody --group=nobody -cf $@ -C $(TMP) $(PACKAGE)-$(VERSION)
 	@set -- `find $@ -printf '%s'` ; \
 	 sed "s:@UNKNOWN:$$1:" < $(LSM) > $(LSM).tmp ; \
 	 mv $(LSM).tmp $(LSM)
 
-$(TMP)/$(PACKAGE)-$(VERSION): .svn
-	svn export . $@
-	@chmod -R a+r,u+w,og-w $@
-	@find $@ -type d | xargs -r chmod a+rx,u+w,og-w
 endif

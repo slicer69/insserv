@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+August 2018 2018 - jsmith@resonatingmedia.com
+
+- Updated insserv.c and listing.h to fix compile errors.
+- Fixed Makefile so that all source dependencies are found.
+- Allow CC to be defined outside of Makefile so we are not tied to GCC.
+- Fixed function definitions, moved code (map_ functions) used in multiple 
+  places out of insserv.c and into its own module called map.c
+  Makes it easier to fix Makefile to build with modern systems/compilers.
+- Cleaned up the last of the compiler errors on Clang and almost all the
+  warnings from GCC.
+
+-------------------------------------------------------------------
 Sun Feb 16 19:16:10 CET 2014 - pere@hungry.com
 
 - Next release will be 1.17.0.

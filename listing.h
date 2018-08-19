@@ -328,12 +328,12 @@ extern const char *const delimeter;
 extern void error(const char *restrict fmt, ...) attribute((noreturn,format(printf,1,2)));
 extern void warn (const char *restrict fmt, ...) attribute((format(printf,1,2)));
 extern void info (int level, const char *restrict fmt, ...) attribute((format(printf,2,3)));
-extern inline int map_has_runlevels(void) attribute((always_inline));
-extern inline char map_runlevel_to_key(const int runlevel);
-extern inline ushort map_key_to_lvl(const char key);
-extern inline const char *map_runlevel_to_location(const int runlevel);
-extern inline ushort map_runlevel_to_lvl(const int runlevel);
-extern inline ushort map_runlevel_to_seek(const int runlevel);
+int map_has_runlevels(void);
+char map_runlevel_to_key(const int runlevel);
+ushort map_key_to_lvl(const char key);
+const char *map_runlevel_to_location(const int runlevel);
+ushort map_runlevel_to_lvl(const int runlevel);
+ushort map_runlevel_to_seek(const int runlevel);
 extern ushort str2lvl(const char *restrict lvl) attribute((nonnull(1)));
 extern char * lvl2str(const ushort lvl);
 
@@ -454,3 +454,37 @@ extern char empty[];
  * Maximum start/stop level
  */
 #define MAX_DEEP 99
+
+
+static struct {
+    char *location;
+    const ushort lvl;
+    const ushort seek;
+    const char key;
+} attribute((aligned(sizeof(char*)))) runlevel_locations[] = {
+#ifdef SUSE     /* SuSE's SystemV link scheme */
+    {"rc0.d/",    LVL_HALT,   LVL_NORM, '0'},
+    {"rc1.d/",    LVL_ONE,    LVL_NORM, '1'}, /* runlevel 1 switch over to single user mode */
+    {"rc2.d/",    LVL_TWO,    LVL_NORM, '2'},
+    {"rc3.d/",    LVL_THREE,  LVL_NORM, '3'},
+    {"rc4.d/",    LVL_FOUR,   LVL_NORM, '4'},
+    {"rc5.d/",    LVL_FIVE,   LVL_NORM, '5'},
+    {"rc6.d/",    LVL_REBOOT, LVL_NORM, '6'},
+    {"rcS.d/",    LVL_SINGLE, LVL_NORM, 'S'}, /* runlevel S is for single user mode */
+    {"boot.d/",   LVL_BOOT,   LVL_BOOT, 'B'}, /* runlevel B is for system initialization */
+#else           /* not SUSE (actually, Debian) */
+    {"../rc0.d/", LVL_HALT,   LVL_NORM, '0'},
+    {"../rc1.d/", LVL_ONE,    LVL_NORM, '1'}, /* runlevel 1 switch over to single user mode */
+    {"../rc2.d/", LVL_TWO,    LVL_NORM, '2'},
+    {"../rc3.d/", LVL_THREE,  LVL_NORM, '3'},
+    {"../rc4.d/", LVL_FOUR,   LVL_NORM, '4'},
+    {"../rc5.d/", LVL_FIVE,   LVL_NORM, '5'},
+    {"../rc6.d/", LVL_REBOOT, LVL_NORM, '6'},
+    {"../rcS.d/", LVL_BOOT,   LVL_BOOT, 'S'}, /* runlevel S is for system initialization */
+                /* On e.g. Debian there exist no boot.d */
+#endif          /* not SUSE */
+};
+
+
+#define RUNLEVLES (int)(sizeof(runlevel_locations)/sizeof(runlevel_locations[0]))
+

@@ -426,8 +426,13 @@ static boolean chkrequired(service_t *restrict serv, const boolean recursive)
     boolean ret = true;
     list_t * pos;
 
+    /* Technically, it is not possible for this function to be called if serv is
+       NULL, which makes the compiler complain about this check. Commenting it
+       out since neither of these conditions is likely to change given program's
+       mature/legacy nature. -- Jesse
     if (!serv)
-	goto out;
+	return ret;
+    */
     serv = getorig(serv);
 
     np_list_for_each(pos, &serv->sort.req) {
@@ -474,7 +479,6 @@ static boolean chkrequired(service_t *restrict serv, const boolean recursive)
 	}
     }
 #endif
-out:
     return ret;
 }
 
@@ -1756,83 +1760,6 @@ static inline void scan_script_regfree()
     regfree(&reg.def_stop);
     regfree(&reg.desc);
     regfree(&reg.interact);
-}
-
-static struct {
-    char *location;
-    const ushort lvl;
-    const ushort seek;
-    const char key;
-} attribute((aligned(sizeof(char*)))) runlevel_locations[] = {
-#ifdef SUSE	/* SuSE's SystemV link scheme */
-    {"rc0.d/",    LVL_HALT,   LVL_NORM, '0'},
-    {"rc1.d/",    LVL_ONE,    LVL_NORM, '1'}, /* runlevel 1 switch over to single user mode */
-    {"rc2.d/",    LVL_TWO,    LVL_NORM, '2'},
-    {"rc3.d/",    LVL_THREE,  LVL_NORM, '3'},
-    {"rc4.d/",    LVL_FOUR,   LVL_NORM, '4'},
-    {"rc5.d/",    LVL_FIVE,   LVL_NORM, '5'},
-    {"rc6.d/",    LVL_REBOOT, LVL_NORM, '6'},
-    {"rcS.d/",    LVL_SINGLE, LVL_NORM, 'S'}, /* runlevel S is for single user mode */
-    {"boot.d/",   LVL_BOOT,   LVL_BOOT, 'B'}, /* runlevel B is for system initialization */
-#else		/* not SUSE (actually, Debian) */
-    {"../rc0.d/", LVL_HALT,   LVL_NORM, '0'},
-    {"../rc1.d/", LVL_ONE,    LVL_NORM, '1'}, /* runlevel 1 switch over to single user mode */
-    {"../rc2.d/", LVL_TWO,    LVL_NORM, '2'},
-    {"../rc3.d/", LVL_THREE,  LVL_NORM, '3'},
-    {"../rc4.d/", LVL_FOUR,   LVL_NORM, '4'},
-    {"../rc5.d/", LVL_FIVE,   LVL_NORM, '5'},
-    {"../rc6.d/", LVL_REBOOT, LVL_NORM, '6'},
-    {"../rcS.d/", LVL_BOOT,   LVL_BOOT, 'S'}, /* runlevel S is for system initialization */
-		/* On e.g. Debian there exist no boot.d */
-#endif		/* not SUSE */
-};
-
-#define RUNLEVLES (int)(sizeof(runlevel_locations)/sizeof(runlevel_locations[0]))
-
-int map_has_runlevels(void)
-{
-    return RUNLEVLES;
-}
-
-char map_runlevel_to_key(const int runlevel)
-{
-    if (runlevel >= RUNLEVLES) {
-	error("Wrong runlevel %d\n", runlevel);
-    }
-    return runlevel_locations[runlevel].key;
-}
-
-ushort map_key_to_lvl(const char key)
-{
-    int runlevel;
-    const char uckey = toupper(key);
-    for (runlevel = 0; runlevel < RUNLEVLES; runlevel++) {
-	if (uckey == runlevel_locations[runlevel].key)
-	    return runlevel_locations[runlevel].lvl;
-    }
-    error("Wrong runlevel key '%c'\n", uckey);
-    return 0;
-}
-
-const char *map_runlevel_to_location(const int runlevel)
-{
-    if (runlevel >= RUNLEVLES) {
-	error("Wrong runlevel %d\n", runlevel);
-    }
-    return runlevel_locations[runlevel].location;
-}
-
-ushort map_runlevel_to_lvl(const int runlevel)
-{
-    if (runlevel >= RUNLEVLES) {
-	error("Wrong runlevel %d\n", runlevel);
-    }
-    return runlevel_locations[runlevel].lvl;
-}
-
-ushort map_runlevel_to_seek(const int runlevel)
-{
-    return runlevel_locations[runlevel].seek;
 }
 
 /*

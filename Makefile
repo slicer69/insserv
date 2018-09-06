@@ -10,9 +10,10 @@ INSCONF  =	/etc/insserv.conf
 #DESTDIR =	/tmp/root
 #DEBUG	 =	-DDEBUG=1 -Wpacked
 DEBUG	 =
-ISSUSE	 =	-DSUSE
+#ISSUSE	 =	-DSUSE
 DESTDIR	 =
 VERSION	 =	1.17.0
+TARBALL  =	$(PACKAGE)-$(VERSION).tar.xz
 DATE	 =	$(shell date +'%d%b%y' | tr '[:lower:]' '[:upper:]')
 CFLDBUS	 =	$(shell pkg-config --cflags dbus-1)
 
@@ -176,16 +177,15 @@ FILES	= README         \
 	  insserv.c      \
 	  insserv.conf   \
 	  init-functions \
+          map.c          \
 	  remove_initd   \
 	  install_initd  \
 	  tests/common   \
-	  tests/suite    \
-	  insserv-$(VERSION).lsm
+	  tests/suite    
 
 SVLOGIN=$(shell svn info | sed -rn '/Repository Root:/{ s|.*//(.*)\@.*|\1|p }')
 ifeq ($(MAKECMDGOALS),upload)
 override TMP:=$(shell mktemp -d $(PACKAGE)-$(VERSION).XXXXXXXX)
-override TARBALL:=$(TMP)/$(PACKAGE)-$(VERSION).tar.xz
 override SFTPBATCH:=$(TMP)/$(VERSION)-sftpbatch
 override LSM=$(TMP)/$(PACKAGE)-$(VERSION).lsm
 
@@ -207,27 +207,22 @@ Copying-policy:	GPL\n\
 End" | sed 's@^ @@g;s@^x@@g' > $(LSM)
 
 dest: $(LSM)
+endif
 
 upload: $(SFTPBATCH)
 	@sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/sysvinit
 	mv $(TARBALL) $(LSM) .
 	rm -rf $(TMP)
 
-$(SFTPBATCH): $(TARBALL).sig
-	@echo progress > $@
-	@echo put $(TARBALL) >> $@
-	@echo chmod 644 $(notdir $(TARBALL)) >> $@
-	@echo put $(TARBALL).sig >> $@
-	@echo chmod 644 $(notdir $(TARBALL)).sig >> $@
-	@echo quit >> $@
+dist: $(TARBALL).sig
+
 
 $(TARBALL).sig: $(TARBALL)
 	@gpg -q -ba --use-agent -o $@ $<
 
-$(TARBALL): clean
-	@tar --xz --owner=nobody --group=nobody -cf $@ -C $(TMP) $(PACKAGE)-$(VERSION)
-	@set -- `find $@ -printf '%s'` ; \
-	 sed "s:@UNKNOWN:$$1:" < $(LSM) > $(LSM).tmp ; \
-	 mv $(LSM).tmp $(LSM)
+$(TARBALL): all
+	@tar --xz --owner=nobody --group=nobody -cf $(TARBALL) $(FILES)
 
-endif
+distclean: clean
+	rm -f $(TARBALL) $(TARBALL).sig
+

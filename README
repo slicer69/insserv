@@ -1,6 +1,19 @@
+README for insserv
+
+insserv is a boot sequence organizer using LSB init.d script dependency 
+information. It is typically used alongside the SysV init software.
 
 
-Requires Dbus development libraries.
+Compiling
 
-libdbus packages on Debian/Ubuntu.
+insserv can be built with most modern compilers, including GCC and Clang.
+One of the software's few dependencies is the D-bus devlopment libraries. The
+D-bus packages are called libdbus-dev under Debian/Ubuntu.
+
+
+Installing
+
+To build insserv, run the command "make install" in the top level of the
+source directory. To install the innserv software, run "sudo make install".
+This will perform some checks and then copy the software into place.
 

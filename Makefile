@@ -179,9 +179,7 @@ FILES	= README         \
 	  init-functions \
           map.c          \
 	  remove_initd   \
-	  install_initd  \
-	  tests/common   \
-	  tests/suite    
+	  install_initd 
 
 SVLOGIN=$(shell svn info | sed -rn '/Repository Root:/{ s|.*//(.*)\@.*|\1|p }')
 ifeq ($(MAKECMDGOALS),upload)
@@ -220,8 +218,12 @@ dist: $(TARBALL).sig
 $(TARBALL).sig: $(TARBALL)
 	@gpg -q -ba --use-agent -o $@ $<
 
-$(TARBALL): all
-	@tar --xz --owner=nobody --group=nobody -cf $(TARBALL) $(FILES)
+$(TARBALL): clean
+	mkdir -p insserv/tests
+	cp $(FILES) insserv/
+	cp tests/* insserv/tests/
+	@tar --xz --owner=nobody --group=nobody -cf $(TARBALL) insserv/
+	rm -rf insserv
 
 distclean: clean
 	rm -f $(TARBALL) $(TARBALL).sig

@@ -8,7 +8,8 @@ Compiling
 
 insserv can be built with most modern compilers, including GCC and Clang.
 One of the software's few dependencies is the D-bus devlopment libraries. The
-D-bus packages are called libdbus-dev under Debian/Ubuntu.
+D-bus packages are called libdbus-dev under Debian/Ubuntu. For example,
+libdbus-1-dev on Debian.
 
 
 Installing

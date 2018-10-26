@@ -267,10 +267,10 @@ LSB comment headers of scripts in the init.d directory (default path is
 .BR \-p\ <path> ,\  \-\-path\ <path>
 Specify path to init.d directory.  Useful for testing.
 .TP
-.BR \-n ,\  \-\-dryrun
+.BR \-n ,\  \-\-dryrun, \  \-\-dry\-run
 Do not update symlinks.
 .TP
-.BR \-s ,\  \-\-showall
+.BR \-s ,\  \-\-showall, \ \-\-show\-all
 Output runlevel and sequence information. Do not update symlinks.
 .TP
 .BR \-r ,\  \-\-remove

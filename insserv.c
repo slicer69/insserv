@@ -2596,6 +2596,7 @@ static struct option long_options[] =
     {"verbose",	    0, (int*)0, 'v'},
     {"config",	    1, (int*)0, 'c'},
     {"dryrun",	    0, (int*)0, 'n'},
+    {"dry-run",	    0, (int*)0, 'n'},
     {"default",	    0, (int*)0, 'd'},
     {"remove",	    0, (int*)0, 'r'},
     {"force",	    0, (int*)0, 'f'},
@@ -2604,6 +2605,7 @@ static struct option long_options[] =
     {"upstart-job", 1, (int*)0, 'u'},
     {"recursive",   0, (int*)0, 'e'},
     {"showall",	    0, (int*)0, 's'},
+    {"show-all",    0, (int*)0, 's'},
     {"help",	    0, (int*)0, 'h'},
     { 0,	    0, (int*)0,  0 },
 };
@@ -2620,8 +2622,8 @@ static void help(const char *restrict const  name)
     printf("  -p <path>, --path <path>  Path to replace " INITDIR ".\n");
     printf("  -o <path>, --override <path> Path to replace " OVERRIDEDIR ".\n");
     printf("  -c <config>, --config <config>  Path to config file.\n");
-    printf("  -n, --dryrun     Do not change the system, only talk about it.\n");
-    printf("  -s, --showall    Output runlevel and sequence information.\n");
+    printf("  -n, --dry-run     Do not change the system, only talk about it.\n");
+    printf("  -s, --show-all    Output runlevel and sequence information.\n");
     printf("  -u <path>, --upstart-job <path> Path to replace existing upstart job path.\n");
     printf("  -e, --recursive  Expand and enable all required services.\n");
     printf("  -d, --default    Use default runlevels a defined in the scripts\n");

@@ -1,5 +1,12 @@
 -------------------------------------------------------------------
-August 2018 2018 - jsmith@resonatingmedia.com
+October 2018 - jsmith@resonatingmedia.com
+
+- Added ability to run --dry-run and --show-all in addition to
+  the existing --dryrun and --showall options.
+  Closes Debian bug #580773
+
+-------------------------------------------------------------------
+August 2018 - jsmith@resonatingmedia.com
 
 - Updated insserv.c and listing.h to fix compile errors.
 - Fixed Makefile so that all source dependencies are found.

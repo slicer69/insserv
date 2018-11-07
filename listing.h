@@ -455,7 +455,7 @@ extern char empty[];
  */
 #define MAX_DEEP 99
 
-
+#ifdef NEED_RUNLEVELS_DEF
 static struct {
     char *location;
     const ushort lvl;
@@ -486,5 +486,5 @@ static struct {
 };
 
 
-#define RUNLEVLES (int)(sizeof(runlevel_locations)/sizeof(runlevel_locations[0]))
-
+#define RUNLEVELS (int)(sizeof(runlevel_locations)/sizeof(runlevel_locations[0]))
+#endif     /* done checking if we need runlevels defined */

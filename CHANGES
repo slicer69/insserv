@@ -4,6 +4,8 @@ October 2018 - jsmith@resonatingmedia.com
 - Added ability to run --dry-run and --show-all in addition to
   the existing --dryrun and --showall options.
   Closes Debian bug #580773
+- Fixed compiler warnings when unused variables are defined in listing.h
+
 
 -------------------------------------------------------------------
 August 2018 - jsmith@resonatingmedia.com

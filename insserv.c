@@ -65,6 +65,9 @@
 #ifdef SUSE
 # include <sys/mount.h>
 #endif /* SUSE */
+#ifndef NEED_RUNLEVELS_DEF
+#define NEED_RUNLEVELS_DEF
+#endif
 #include "listing.h"
 #include "systemd.h"
 
@@ -1794,7 +1797,7 @@ char * lvl2str(const ushort lvl)
 
     last = ptr = &str[0];
     memset(ptr, '\0', sizeof(str));
-    for (num = 0; num < RUNLEVLES; num++) {
+    for (num = 0; num < RUNLEVELS; num++) {
 	if (bit & lvl) {
 	    if (ptr > last)
 		*ptr++ = ' ';
@@ -1832,7 +1835,7 @@ static void scan_script_locations(const char *const path, const char *const over
     int runlevel;
 
     pushd(path);
-    for (runlevel = 0; runlevel < RUNLEVLES; runlevel++) {
+    for (runlevel = 0; runlevel < RUNLEVELS; runlevel++) {
 	const char * rcd = (char*)0;
 	struct stat st_script;
 	struct dirent *d;
@@ -3803,7 +3806,7 @@ int main (int argc, char *argv[])
 #else
 # ifdef SUSE	/* SuSE's SystemV link scheme */
     pushd(path);
-    for (runlevel = 0; runlevel < RUNLEVLES; runlevel++) {
+    for (runlevel = 0; runlevel < RUNLEVELS; runlevel++) {
 	const ushort lvl = map_runlevel_to_lvl(runlevel);
 	char nlink[PATH_MAX+1], olink[PATH_MAX+1];
 	const char * rcd = (char*)0;
@@ -3989,7 +3992,7 @@ int main (int argc, char *argv[])
     * approach a new directory halt.d/ whould be an idea.
     */
     pushd(path);
-    for (runlevel = 0; runlevel < RUNLEVLES; runlevel++) {
+    for (runlevel = 0; runlevel < RUNLEVELS; runlevel++) {
 	char nlink[PATH_MAX+1], olink[PATH_MAX+1];
 	const char * rcd = (char*)0;
 	const char * script;

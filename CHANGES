@@ -4,6 +4,17 @@ November 2018 - jsmith@resonatingmedia.com
   upstream code and manual page.
   Mostly introduces typo fixes and more flexible
   Makefile options.
+  The following patches are no longer needed downstream:
+  20_manpage_spelling
+  21_tweak_warnings
+  30_interactive_regexp_match
+  92_m68k_alignment
+  100_show
+  130_crossbuild_fixes
+  150_core_string_test
+  160_manual_page_update
+  170_undeclared_extension
+  180_maxsymlinks
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

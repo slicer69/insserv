@@ -1,3 +1,10 @@
+November 2018 - jsmith@resonatingmedia.com
+
+- Applied distro-independent patches from Debian to
+  upstream code and manual page.
+  Mostly introduces typo fixes and more flexible
+  Makefile options.
+
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com
 

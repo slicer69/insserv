@@ -27,13 +27,13 @@ else
 ifeq ($(ARCH),i386)
 	  COPTS = -g -O3 -mcpu=i586 -mtune=i686
 else
-	  COPTS = -g -O2
+	  COPTS ?= -g -O2
 endif
 endif
 	 CFLAGS = -W -Wall -Wunreachable-code $(COPTS) $(DEBUG) $(LOOPS) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
 		  $(ISSUSE) -DINITDIR=\"$(INITDIR)\" -DINSCONF=\"$(INSCONF)\" -pipe 
 	  CLOOP = # -falign-loops=0
-	LDFLAGS = -Wl,-O,3,--relax
+	LDFLAGS ?= -Wl,-O,3,--relax
 	   LIBS =
 ifdef USE_RPMLIB
 	 CFLAGS += -DUSE_RPMLIB=1
@@ -144,7 +144,7 @@ else
 	tests/common
 endif
 
-install:	$(TODO) check
+install:	$(TODO) 
 	$(MKDIR)   $(SBINDIR)
 	$(MKDIR)   $(SDOCDIR)
 	$(MKDIR)   $(CONFDIR)

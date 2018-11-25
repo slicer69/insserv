@@ -71,6 +71,10 @@
 #include "listing.h"
 #include "systemd.h"
 
+#ifdef __m68k__ /* Fix #493637 */
+#  define aligned(a)
+#endif
+
 #if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) >= 600
 # ifndef POSIX_FADV_SEQUENTIAL
 #  define posix_fadvise(fd, off, len, adv)  (-1)
@@ -83,6 +87,10 @@
 # else
 #  define PATH_MAX  2048
 # endif
+#endif
+
+#ifndef MAXSYMLINKS
+#define MAXSYMLINKS 20
 #endif
 
 #ifdef SUSE
@@ -3074,7 +3082,7 @@ int main (int argc, char *argv[])
 	    continue;
 	}
 
-	if (!strncmp(d->d_name, "core", strlen("core"))) {
+	if (!strcmp(d->d_name, "core")) {
 	    if (isarg)
 		warn("script name %s is not valid, skipped!\n", d->d_name);
 	    continue;
@@ -3393,7 +3401,7 @@ int main (int argc, char *argv[])
 			     */
 			    if (!defaults && (deflvls != service->start->lvl)) {
 				if (!del && isarg && !(argr[curr_argc]))
-				    warn("warning: current start runlevel(s) (%s) of script `%s' overwrites defaults (%s).\n",
+				    warn("warning: current start runlevel(s) (%s) of script `%s' overrides LSB defaults (%s).\n",
 					 service->start->lvl ? lvl2str(service->start->lvl) : "empty", d->d_name, lvl2str(deflvls));
 			    }
 			} else
@@ -3412,8 +3420,9 @@ int main (int argc, char *argv[])
 			     * of the current script.
 			     */
 			    if (!defaults && service->start->lvl != 0) {
-				warn("warning: current start runlevel(s) (%s) of script `%s' overwrites defaults (empty).\n",
-				     lvl2str(service->start->lvl), d->d_name);
+				if (!del && isarg && !(argr[curr_argc]))
+				    warn("warning: current start runlevel(s) (%s) of script `%s' overrides LSB defaults (empty).\n",
+					 lvl2str(service->start->lvl), d->d_name);
 				script_inf.default_start = lvl2str(service->start->lvl);
 			    }
 			}
@@ -3455,7 +3464,7 @@ int main (int argc, char *argv[])
 			     */
 			    if (!defaults && (deflvlk != service->stopp->lvl)) {
 				if (!del && isarg && !(argr[curr_argc]))
-				    warn("warning: current stop runlevel(s) (%s) of script `%s' overwrites defaults (%s).\n",
+				    warn("warning: current stop runlevel(s) (%s) of script `%s' overrides LSB defaults (%s).\n",
 					 service->stopp->lvl ? lvl2str(service->stopp->lvl) : "empty", d->d_name, lvl2str(deflvlk));
 			    }
 			} else
@@ -3474,8 +3483,9 @@ int main (int argc, char *argv[])
 			     * of the current script.
 			     */
 			    if (!defaults && service->stopp->lvl != 0) {
-				warn("warning: current stop runlevel(s) (%s) of script `%s' overwrites defaults (empty).\n",
-				     lvl2str(service->stopp->lvl), d->d_name);
+				if (!del && isarg && !(argr[curr_argc]))
+				    warn("warning: current stop runlevel(s) (%s) of script `%s' overrides LSB defaults (empty).\n",
+					 lvl2str(service->stopp->lvl), d->d_name);
 				script_inf.default_stop = lvl2str(service->stopp->lvl);
 			    }
 			}

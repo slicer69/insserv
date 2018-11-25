@@ -26,7 +26,7 @@
 .UC 8
 @@END_SUSE@@
 .SH NAME
-insserv \- Enable an installed system init script
+insserv \- boot sequence organizer using LSB init.d script dependency information
 .SH SYNOPSIS
 .\"
 .B insserv
@@ -64,8 +64,10 @@ insserv \- Enable an installed system init script
 @@END_SUSE@@
 .SH DESCRIPTION
 .B insserv
-enables an installed system init script (`boot script')
-by reading the comment header of the script, e.g.:
+is a low level tool used by
+.B update\-rc.d
+which enables an installed system
+init script (`boot script') by reading the comment header of the script, e.g.:
 .sp 1
 .in +1l
 .nf
@@ -86,7 +88,11 @@ by reading the comment header of the script, e.g.:
 .fi
 .in -1l
 .sp 1
-and calculating the dependencies between all scripts.
+and calculating the dependencies between all scripts. It is not recommended to
+execute insserv directly unless you know exactly what you're doing, doing so
+may render your boot system inoperable.
+.B update\-rc.d
+is the recommended interface for managing init scripts.
 @@BEGIN_SUSE@@
 Please note, that the
 .B Default\-Stop
@@ -124,7 +130,7 @@ these tags is stopped.
 The optional X\-Interactive keyword implies that the script using this
 keyword should be started alone in a concurrent boot configuration
 because it interact with the user at the console.  Only the value
-`true' is recogniced.  All other are ignored.
+`true' is recognised.  All others are ignored.
 .PP
 The optional
 .B X\-Start\-Before
@@ -244,7 +250,7 @@ in the configuration file
 also knows the special facility
 .BR $all .
 This facility indicates that a service should be inserted
-at the end of all services at starting and at the very begining
+at the end of all services at starting and at the very beginning
 at stopping.  Clearly all services using this facility will be
 grouped into one starting or stopping order.
 .\"

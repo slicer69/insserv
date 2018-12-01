@@ -17,6 +17,9 @@ November 2018 - jsmith@resonatingmedia.com
   180_maxsymlinks
 
 - Minor update to manual page to fix typo.
+- Added patch from Dmitry Bogatov which makes communicating
+  with D-bus optional at compile time. This feature is
+  enabled by compiling with WANT_SYSTEMD defined.
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

@@ -1,3 +1,4 @@
+#ifdef WANT_SYSTEMD
 /*
  * systemd.c	    Use dbus API of systemd to import dependencies from.
  *
@@ -458,3 +459,4 @@ void systemd_free(void)
 	free(serv);
     }
 }
+#endif /* WANT_SYSTEMD */

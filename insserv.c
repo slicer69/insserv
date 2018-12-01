@@ -126,8 +126,11 @@ static inline void oneway(char *restrict stop)
 /* Upstart suport */
 static const char *upstartjob_path = "/lib/init/upstart-job";
 
+#ifdef WANT_SYSTEMD
 /* Systemd support */
 static DBusConnection *sbus;
+
+#endif /* WANT_SYSTEMD */
 
 /*
  * For a description of regular expressions see regex(7).
@@ -182,8 +185,10 @@ static boolean set_override = false;
 static boolean set_insconf = false;
 
 /* Wether systemd is active or not */
+#if WANT_SYSTEMD
 static boolean systemd = false;
 static boolean is_overridden_by_systemd(const char *);
+#endif /* WANT_SYSTEMD */
 
 /* Search results points here */
 typedef struct lsb_struct {
@@ -1710,6 +1715,7 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
     }
 #endif /* SUSE */
 
+#ifdef WANT_SYSTEMD
     if (systemd) {
 	const char *serv;
 	serv = path;
@@ -1719,6 +1725,7 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
 	    ret |= FOUND_LSB_SYSTEMD;
 	}
     }
+#endif /* WANT_SYSTEMD */
 
     if (NULL != (upstart_job = is_upstart_job(path))) {
 	xreset(upstart_job);
@@ -2201,6 +2208,7 @@ static void scan_conf(const char *restrict file)
     regfree(&creg.isactive);
 }
 
+#ifdef WANT_SYSTEMD
 /*
  * Maps between systemd and SystemV
  */
@@ -2217,6 +2225,9 @@ static const char* sdmap[] = {
     "localfs",		"boot.localfs"
 };
 
+#endif /* WANT_SYSTEMD */
+
+#ifdef WANT_SYSTEMD
 /*
  *  Here the systemd targets are imported as system facilities 
  */
@@ -2351,6 +2362,8 @@ static void import_systemd_services(void)
 	}
     }
 }
+
+#endif /* WANT_SYSTEMD */
 
 static void expand_faci(list_t *restrict rlist, list_t *restrict head,
 			int *restrict deep) attribute((noinline,nonnull(1,2,3)));
@@ -2546,6 +2559,8 @@ out:
 }
 #endif /* SUSE */
 
+#ifdef WANT_SYSTEMD
+
 /*
  * Systemd integration
  */
@@ -2601,6 +2616,8 @@ static void forward_to_systemd (const char *initscript, const char *verb, boolea
 	free (p);
     }
 }
+
+#endif /* WANT_SYSTEMD */
 
 static struct option long_options[] =
 {
@@ -2860,6 +2877,7 @@ int main (int argc, char *argv[])
     /*
      * Systemd support
      */
+#ifdef WANT_SYSTEMD
     if (access(SYSTEMD_BINARY_PATH, F_OK) == 0 && (sbus = systemd_open_conn())) {
 
 	for (c = 0; c < argc; c++)
@@ -2869,23 +2887,27 @@ int main (int argc, char *argv[])
 	systemd_close_conn(sbus);
 	systemd = true;
     }
+#endif /* WANT_SYSTEMD */
 
     /*
      * Scan and set our configuration for virtual services.
      */
     scan_conf(insconf);
 
+#ifdef WANT_SYSTEMD
     /*
      * Handle Systemd target as system facilities (<name>.target -> $<name>)
      */
     if (systemd)
 	import_systemd_facilities();
+#endif
 
     /*
      * Expand system facilities to real services
      */
     expand_conf();
 
+#ifdef WANT_SYSTEMD
     /*
      * Handle Systemd services (<name>.service -> <name>)
      */
@@ -2893,6 +2915,7 @@ int main (int argc, char *argv[])
 	import_systemd_services();
 	systemd_free();		/* Not used anymore */
     }
+#endif
 
     /*
      * Initialize the regular scanner for the scripts.

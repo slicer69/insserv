@@ -1,3 +1,4 @@
+#ifdef WANT_SYSTEMD
 /*
  * systemd.h
  *
@@ -51,4 +52,6 @@ extern list_t sdservs;
 #define SDREL_CONFLICTS		(1<<3)	    /* Conflicts	*/
 #define	SDREL_BEFORE		(1<<4)	    /* Before		*/
 #define SDREL_AFTER		(1<<5)	    /* After		*/
+
+#endif /* WANT_SYSTEMD */
 

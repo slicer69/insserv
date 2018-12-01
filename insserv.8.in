@@ -255,8 +255,7 @@ at stopping.  Clearly all services using this facility will be
 grouped into one starting or stopping order.
 .\"
 .SH OPTIONS
-Currently there exists nine options for
-.BR insserv .
+Currently the following options are recognized by insserv:
 .TP
 .BR \-v ,\  \-\-verbose
 Write out what is currently going on.

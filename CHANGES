@@ -20,6 +20,8 @@ November 2018 - jsmith@resonatingmedia.com
 - Added patch from Dmitry Bogatov which makes communicating
   with D-bus optional at compile time. This feature is
   enabled by compiling with WANT_SYSTEMD defined.
+- Migrated Debian testsuite into the "tests" directory.
+
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

@@ -21,7 +21,7 @@ November 2018 - jsmith@resonatingmedia.com
   with D-bus optional at compile time. This feature is
   enabled by compiling with WANT_SYSTEMD defined.
 - Migrated Debian testsuite into the "tests" directory.
-
+- Fixed typo in warning messages.
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

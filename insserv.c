@@ -3765,10 +3765,10 @@ int main (int argc, char *argv[])
 		    if ((must->attr.flags & (SERV_ENFORCE|SERV_KNOWN)) == SERV_ENFORCE) {
 			if ((must->attr.flags & SERV_WARNED) == 0)
 #ifdef OSCBUILD
-			    warn("Service %s has to exists for service %s\n",
+			    warn("Service %s has to exist for service %s\n",
 				must->name, cur->name);
 #else
-			    warn("FATAL: service %s has to exists for service %s\n",
+			    warn("FATAL: service %s has to exist for service %s\n",
 				must->name, cur->name);
 			waserr = true;
 #endif
@@ -3787,10 +3787,10 @@ int main (int argc, char *argv[])
 		if ((must->attr.flags & (SERV_CMDLINE|SERV_KNOWN)) == 0) {
 		    if ((must->attr.flags & SERV_WARNED) == 0)
 #ifdef OSCBUILD
-			warn("Service %s has to exists for service %s\n",
+			warn("Service %s has to exist for service %s\n",
 			    must->name, cur->name);
 #else
-			warn("FATAL: service %s has to exists for service %s\n",
+			warn("FATAL: service %s has to exist for service %s\n",
 			    must->name, cur->name);
 		    waserr = true;
 #endif

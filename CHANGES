@@ -22,6 +22,9 @@ November 2018 - jsmith@resonatingmedia.com
   enabled by compiling with WANT_SYSTEMD defined.
 - Migrated Debian testsuite into the "tests" directory.
 - Fixed typo in warning messages.
+- Cause Makefile to create link needed for testing in "tests"
+  directory when building insserv. Running distclean removes
+  link to avoid cluttering archive.
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

@@ -76,6 +76,7 @@ endif
 TODO	=	insserv insserv.8
 
 all:		$(TODO)
+	ln -s ../insserv tests/insserv
 
 insserv:	insserv.o listing.o systemd.o map.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -227,4 +228,4 @@ $(TARBALL): clean
 
 distclean: clean
 	rm -f $(TARBALL) $(TARBALL).sig
-
+	rm -f tests/insserv

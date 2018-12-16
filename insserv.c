@@ -251,14 +251,12 @@ static void pushd(const char *restrict const path)
 
     if (posix_memalign((void*)&dir, sizeof(void*), alignof(pwd_t)) == 0) {
 	if (!(dir->pwd = getcwd((char*)0, 0)))
-	    goto err;
-	insert(&dir->deep, topd->prev);
+           fprintf(stderr, "pushd() cannot save current working directory.\n");
+	else
+           insert(&dir->deep, topd->prev);
 	if (chdir(path) < 0)
-	    goto err;
-	return;
+           error("pushd() cannot change to directory %s: %s\n", path, strerror(errno) );
     }
-err:
-    error ("pushd() can not change to directory %s: %s\n", path, strerror(errno));
 }
 
 static void popd(void)
@@ -266,15 +264,24 @@ static void popd(void)
     pwd_t * dir;
 
     if (list_empty(topd))
-	goto out;
-    dir = getpwd(topd->prev);
-    if (chdir(dir->pwd) < 0)
-	error ("popd() can not change directory %s: %s\n", dir->pwd, strerror(errno));
-    delete(topd->prev);
-    free(dir->pwd);
-    free(dir);
-out:
-    return;
+	return;
+    if (topd->prev)
+    {
+       dir = getpwd(topd->prev);
+       if (! dir->pwd)
+       {
+          fprintf(stderr, "popd() previous directory does not exist in memory.\n");
+          return;
+       }
+       if (chdir(dir->pwd) < 0)
+       {
+   	   fprintf(stderr, "popd() can not change directory %s: %s\n", dir->pwd, strerror(errno) );
+           return;
+       }
+       delete(topd->prev);
+       free(dir->pwd);
+       free(dir);
+   }
 }
 
 /*

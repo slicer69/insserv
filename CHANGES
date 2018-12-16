@@ -25,6 +25,9 @@ November 2018 - jsmith@resonatingmedia.com
 - Cause Makefile to create link needed for testing in "tests"
   directory when building insserv. Running distclean removes
   link to avoid cluttering archive.
+- Fixed pushd() and popd() functions to avoid terminating insserv
+  if the current working directory is inaccessible.
+  Fixes Debian bug #573571.
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

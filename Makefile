@@ -76,7 +76,7 @@ endif
 TODO	=	insserv insserv.8
 
 all:		$(TODO)
-	ln -s ../insserv tests/insserv
+	$(LINK) ../insserv tests/insserv
 
 insserv:	insserv.o listing.o systemd.o map.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)

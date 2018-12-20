@@ -3059,7 +3059,7 @@ int main (int argc, char *argv[])
 	    if (S_ISDIR(st_script.st_mode))
 		continue;
 	    if (isarg)
-		warn("script %s is not an executable regular file, skipped!\n", d->d_name);
+		warn("script %s is not an executable file, will be skipped in boot sequence!\n", d->d_name);
 	    continue;
 	}
 
@@ -3094,7 +3094,7 @@ int main (int argc, char *argv[])
 		if (S_ISDIR(st_script.st_mode))
 		    continue;
 		if (isarg)
-		    warn("script %s is not an executable regular file, skipped!\n",
+		    warn("script %s is not an executable regular file, will be skipped in boot sequence!\n",
 			 d->d_name);
 		continue;
 	    }

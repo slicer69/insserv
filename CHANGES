@@ -28,6 +28,11 @@ November 2018 - jsmith@resonatingmedia.com
 - Fixed pushd() and popd() functions to avoid terminating insserv
   if the current working directory is inaccessible.
   Fixes Debian bug #573571.
+- Updated warning message insserv disables when an init.d script
+  is not executable, to better indicate the script will not
+  be enabled at boot/entering runlevel.
+  Closes Debian bug 661314.
+
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

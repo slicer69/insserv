@@ -32,7 +32,10 @@ November 2018 - jsmith@resonatingmedia.com
   is not executable, to better indicate the script will not
   be enabled at boot/entering runlevel.
   Closes Debian bug 661314.
-
+- Applied patch from Bloeslaw Tokarski which should improve
+  performance of insserv in some cases by bypassing unnecessary
+  some fadvise calls.
+  Closes Debian bug #775912
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

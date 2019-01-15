@@ -1900,7 +1900,7 @@ static void scan_script_locations(const char *const path, const char *const over
 		continue;
 	    }
 
-	    lsb = scan_script_defaults(dfd, d->d_name, override_path, &name, true, ignore);
+	    lsb = scan_script_defaults(dfd, d->d_name, override_path, &name, false, ignore);
 	    if (!name) {
 		warn("warning: script is corrupt or invalid: %s/%s%s\n", path, rcd, d->d_name);
 		continue;
@@ -2964,7 +2964,7 @@ int main (int argc, char *argv[])
 	const char *const name = argv[c];
 	service_t * first = (service_t*)0;
 	char * provides, * begin, * token;
-	const uchar lsb = scan_script_defaults(dfd, name, override_path, (char**)0, true, ignore);
+	const uchar lsb = scan_script_defaults(dfd, name, override_path, (char**)0, false, ignore);
 
 	if ((lsb & FOUND_LSB_HEADER) == 0) {
 	    if ((lsb & (FOUND_LSB_DEFAULT|FOUND_LSB_OVERRIDE)) == 0)

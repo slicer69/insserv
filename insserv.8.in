@@ -19,10 +19,10 @@
 .\" Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 .\"
 @@BEGIN_SUSE@@
-.TH INSSERV 8 "Jul 29, 2008" "Version 1.11" "The SuSE boot concept"
+.TH INSSERV 8 "July 29, 2008" "Version 1.11" "The SuSE boot concept"
 .UC 8
 @@ELSE_SUSE@@
-.TH INSSERV 8 "Jul 29, 2008" "Version 1.11"
+.TH INSSERV 8 "July 29, 2008" "Version 1.11"
 .UC 8
 @@END_SUSE@@
 .SH NAME
@@ -37,11 +37,15 @@ insserv \- boot sequence organizer using LSB init.d script dependency informatio
 .RB [ \-f ]
 .RI [[ / ] path/to/init.d/ ] script \ ...
 .PP
+.\" avoid excessive space between words in troff caused by a long text string
+.nr AD \n(.j
+.ad l
 .B insserv
 .RB [ \-v ]
 .RB [ \-c\ <config> ]
 .RB [ \-p\ <path> ]
 .RI [[ / ] path/to/init.d/ ] script [ ,start=<lvl1,lvl2,...>,stop=<lvl1,lvl2,...> ]
+.ad \n(AD
 .PP
 .B insserv
 .RB [ \-v ]
@@ -88,7 +92,7 @@ init script (`boot script') by reading the comment header of the script, e.g.:
 .fi
 .in -1l
 .sp 1
-and calculating the dependencies between all scripts. It is not recommended to
+and calculating the dependencies between all scripts.  It is not recommended to
 execute insserv directly unless you know exactly what you're doing, doing so
 may render your boot system inoperable.
 .B update\-rc.d
@@ -120,9 +124,9 @@ tag.  Same holds true for
 .in -1l
 .sp 1
 which declares facilities which should be available during shutdown of
-the service declared in the 
+the service declared in the
 .B Provides
-tag. In both cases the script system should avoid stopping services
+tag.  In both cases the script system should avoid stopping services
 which are declared by these two Stop tags until the script including
 these tags is stopped.
 @@END_SUSE@@
@@ -143,8 +147,8 @@ Whereas the optional
 keyword implies that the script using this keyword
 should be stopped
 .B after
-the specified service names. Both implies that those
-services now depend on the specifying script. 
+the specified service names.  Both implies that those
+services now depend on the specifying script.
 With known dependencies and runlevel(s)
 .B insserv
 sets and reorders the corresponding symbolic links
@@ -226,7 +230,7 @@ and ending with
 are keywords.  Currently
 .B <interactive>
 is the only know keyword for marking a service
-as an interactive one, e.g. a service which requires
+as an interactive one, e.g., a service which requires
 a passphrase or password input during boot
 or runlevel change.  The special facility
 .B $null
@@ -276,7 +280,7 @@ Specify path to init.d directory.  Useful for testing.
 Do not update symlinks.
 .TP
 .BR \-s ,\  \-\-showall, \ \-\-show\-all
-Output runlevel and sequence information. Do not update symlinks.
+Output runlevel and sequence information.  Do not update symlinks.
 .TP
 .BR \-r ,\  \-\-remove
 Remove the listed scripts from all runlevels.
@@ -286,7 +290,7 @@ Use default runlevels as defined in the scripts.
 This may restore an edited runlevel link scheme.
 .TP
 .BR \-f ,\  \-\-force
-Ignore if a required service is missed. Beside this if start and or
+Ignore if a required service is missed.  Beside this if start and or
 stop levels are specified on the command line the default levels of
 the script will be ignored.
 .TP
@@ -323,7 +327,7 @@ has to be called from the root directory.
 .TP
 .RI [[ / ] path/to/init.d/ ] script\ ...
 List of scripts which have to be added to
-the runlevels. If a path is used it
+the runlevels.  If a path is used it
 should point to the absolute or relative
 location of the boot scripts.
 .B insserv
@@ -340,12 +344,12 @@ Note that
 .BR lvl1 ,\  lvl2 ,\ ...
 are the known runlevels explained above.
 The extension
-.IR ,stop=<lvl1,lvl2,...>
+.I ,stop=<lvl1,lvl2,...>
 is also possible.
 .TP
 .RI \fB\-r\fR\ [[ / ] path/to/init.d/ ] script\ ...
 List of scripts which should be removed from
-the runlevels. If a path is used it
+the runlevels.  If a path is used it
 should point to the absolute or relative
 location of the boot scripts.
 .B insserv
@@ -353,9 +357,9 @@ checks for the existence of these scripts.
 .\"
 .SH OVERRIDES
 Beside using the extensions
-.IR ,start=<lvl1,lvl2,...>
+.I ,start=<lvl1,lvl2,...>
 and
-.IR ,stop=<lvl1,lvl2,...>
+.I ,stop=<lvl1,lvl2,...>
 it is possible to use override files replace a LSB comment header
 or simple provide a missing LSB comment header.  This can be done
 by placing a file with the new LSB comment header using the same
@@ -380,11 +384,10 @@ Service was successfully installed or removed
 .IP 1 5
 Service was not installed or removed
 .RE
-.RS 5
 .SH NOTE
 Please be aware that the following patterns of
 boot script file names will be not accepted by
-.BR insserv:
+.BR insserv :
 .sp 1
 .in +1l
 .nf
@@ -412,13 +415,13 @@ of the following characters
 .sp 1
 .in +1l
 .nf
-        $.#%_+-\\*[]^:()~
+        $.#%_+-\e*[]^:()~
 .fi
 .in -1l
 .sp 1
 will be ignored.
 .SH BUGS
-Boot scripts sometimes lack a LSB comment header. Contact a package
+Boot scripts sometimes lack a LSB comment header.  Contact a package
 maintainer or developer of the software which provides the script to
 have a LSB comment header added to it.
 .SH FILES
@@ -448,8 +451,8 @@ required by the Linux Standard Base Specification (LSB).
 .br
 .IR /etc/init.d/.depend.start ,
 .br
-.I  /etc/init.d/.depend.stop
-.in +7
+.I /etc/init.d/.depend.stop
+.in +\n(INu
 The
 .BR make (1)
 like dependency files produced by
@@ -458,7 +461,7 @@ for
 .IR booting ", " starting ", and " stopping
 with the help of
 .BR startpar (8).
-.in -7
++.in -\n(INu
 .\"
 .SH SEE ALSO
 @@BEGIN_SUSE@@
@@ -472,15 +475,15 @@ with the help of
 @@END_SUSE@@
 .BR startpar (8).
 .SH COPYRIGHT
-2000\-2009 Werner Fink,
+2000\(en2009 Werner Fink,
 .br
 2009 SuSE Linux Products GmbH Nuernberg, Germany.
 .br
-2000\-2003 SuSE GmbH Nuernberg, Germany,
+2000\(en2003 SuSE GmbH Nuernberg, Germany,
 .br
-2007\-2009 SuSE Linux Products GmbH Nuernberg, Germany.
+2007\(en2009 SuSE Linux Products GmbH Nuernberg, Germany.
 .br
-2018\-     Jesse Smith
+2018\(en     Jesse Smith
 .SH AUTHOR
 Werner Fink <feedback@suse.de>
 .SH CONTRIBUTORS

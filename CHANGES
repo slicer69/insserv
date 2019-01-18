@@ -36,6 +36,9 @@ November 2018 - jsmith@resonatingmedia.com
   performance of insserv in some cases by bypassing unnecessary
   some fadvise calls.
   Closes Debian bug #775912
+- Updated manual page with format changes. Applied
+  patch from Bjarni Ingi Gislason which closes Debian
+  bug #919610
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

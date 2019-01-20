@@ -1880,7 +1880,7 @@ static void scan_script_locations(const char *const path, const char *const over
 	    char * name = (char *)0;
 	    char * ptr = d->d_name;
 	    service_t * first;
-	    char * begin;		/* Remember address of ptr handled by strsep() */
+	    char * begin;	/* Remember address of ptr handled by strsep() */
 	    char order;
 	    uchar lsb;
 	    char type;
@@ -1940,7 +1940,7 @@ static void scan_script_locations(const char *const path, const char *const over
 		if (!makeprov(service, name))
 		    continue;
 
-		++service->attr.ref;			/* May enabled in several levels */
+		++service->attr.ref;		/* May enabled in several levels */
 
 		if (service->attr.flags & SERV_KNOWN)
 		    continue;
@@ -1951,7 +1951,7 @@ static void scan_script_locations(const char *const path, const char *const over
 
 		if ((lsb & FOUND_LSB_HEADER) == 0) {
 		    if ((lsb & (FOUND_LSB_DEFAULT|FOUND_LSB_OVERRIDE)) == 0)
-		      warn("warning: script '%s' missing LSB tags and overrides\n", d->d_name);
+		        warn("warning: script '%s' missing LSB tags and overrides\n", d->d_name);
 		    else
   		        warn("warning: script '%s' missing LSB tags\n", d->d_name);
 		}

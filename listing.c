@@ -498,7 +498,7 @@ static void guess_order(dir_t *restrict dir, const char mode)
 	uchar * order = &ptrg->deep;
 	list_t * dent;
 
-	if (min > *order)
+	if ( (order) && (min > *order) )    /* add check to avoid null pointer */
 	    min = *order;
 
 	lvl |= ptrg->run.lvl;
@@ -1060,7 +1060,8 @@ service_t * listscripts(const char **restrict script, const char mode, const ush
 	serv = (service_t*)0;
 	if (tmp == d_start)
 	    break;
-	prefetch(tmp->next);
+	if (tmp->next)
+            prefetch(tmp->next);
 	dir = getdir(tmp);
 
 	attof(dir)->korder = dir->stopp.deep;

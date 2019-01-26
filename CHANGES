@@ -27,7 +27,7 @@ November 2018 - jsmith@resonatingmedia.com
   link to avoid cluttering archive.
 - Fixed pushd() and popd() functions to avoid terminating insserv
   if the current working directory is inaccessible.
-  Fixes Debian bug #573571.
+  Fixes Debian bugs #573571 and #785687.
 - Updated warning message insserv disables when an init.d script
   is not executable, to better indicate the script will not
   be enabled at boot/entering runlevel.
@@ -39,6 +39,7 @@ November 2018 - jsmith@resonatingmedia.com
 - Updated manual page with format changes. Applied
   patch from Bjarni Ingi Gislason which closes Debian
   bug #919610
+- Applied two new memory checks to avoid potential segfault.
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

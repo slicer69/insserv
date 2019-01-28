@@ -355,23 +355,23 @@ extern char empty[];
 #if defined(HAS_unlinkat) && defined(_ATFILE_SOURCE) && !defined(__stub_unlinkat)
 # define xremove(d,x) (__extension__ ({ if ((dryrun ? 0 : \
 	(unlinkat(d,x,0) != 0 && (errno != EISDIR || unlinkat(d,x,AT_REMOVEDIR) != 0)))) \
-	warn ("can not remove(%s%s): %s\n", rcd, x, strerror(errno)); \
+	warn ("can not remove(%s/%s%s): %s\n", path, rcd, x, strerror(errno)); \
 	else \
 	info(1, "remove service %s/%s%s\n", path, rcd, x); }))
 #else
 # define xremove(d,x) (__extension__ ({ if ((dryrun ? 0 : (remove(x) != 0))) \
-	warn ("can not remove(%s%s): %s\n", rcd, x, strerror(errno)); \
+	warn ("can not remove(%s/%s%s): %s\n", path, rcd, x, strerror(errno)); \
 	else \
 	info(1, "remove service %s/%s%s\n", path, rcd, x); }))
 #endif
 #if defined(HAS_symlinkat) && defined(_ATFILE_SOURCE) && !defined(__stub_symlinkat)
 # define xsymlink(d,x,y) (__extension__ ({ if ((dryrun ? 0 : (symlinkat(x, d, y) != 0))) \
-	warn ("can not symlink(%s, %s%s): %s\n", x, rcd, y, strerror(errno)); \
+	warn ("can not symlink(%s, %s/%s%s): %s\n", x, path, rcd, y, strerror(errno)); \
 	else \
 	info(1, "enable service %s -> %s/%s%s\n", x, path, rcd, y); }))
 #else
 # define xsymlink(d,x,y) (__extension__ ({ if ((dryrun ? 0 : (symlink(x, y) != 0))) \
-	warn ("can not symlink(%s, %s%s): %s\n", x, rcd, y, strerror(errno)); \
+	warn ("can not symlink(%s, %s/%s%s): %s\n", x, path, rcd, y, strerror(errno)); \
 	else \
 	info(1, "enable service %s -> %s/%s%s\n", x, path, rcd, y); }))
 #endif

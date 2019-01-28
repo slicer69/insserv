@@ -40,6 +40,10 @@ November 2018 - jsmith@resonatingmedia.com
   patch from Bjarni Ingi Gislason which closes Debian
   bug #919610
 - Applied two new memory checks to avoid potential segfault.
+- Print full path names when giving status updates on creating
+  (or failing to create) files such as .depend.boot, .depend.start
+  and .depend.stop.
+  Addresses Debian bug #547609
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

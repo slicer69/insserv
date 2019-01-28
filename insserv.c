@@ -807,28 +807,30 @@ static inline void makedep(void)
 #endif /* USE_KILL_IN_BOOT */
     const char *target;
     const service_t *serv;
+    char current_dir[PATH_MAX];
 
+    getcwd(current_dir, PATH_MAX);
     if (dryrun) {
 #ifdef USE_KILL_IN_BOOT
-	info(1, "dryrun, not creating .depend.boot, .depend.start, .depend.halt, and .depend.stop\n");
+	info(1, "dryrun, not creating .depend.boot, .depend.start, .depend.halt, and .depend.stop in %s/\n", current_dir);
 #else  /* not USE_KILL_IN_BOOT */
-	info(1, "dryrun, not creating .depend.boot, .depend.start, and .depend.stop\n");
+	info(1, "dryrun, not creating .depend.boot, .depend.start, and .depend.stop in %s/\n", current_dir);
 #endif /* not USE_KILL_IN_BOOT */
 	return;
     }
     if (!(boot  = fopen(".depend.boot",  "w"))) {
-	warn("fopen(.depend.stop): %s\n", strerror(errno));
+	warn("fopen(%s/.depend.boot): %s\n", current_dir, strerror(errno));
 	return;
     }
 
     if (!(start = fopen(".depend.start", "w"))) {
-	warn("fopen(.depend.start): %s\n", strerror(errno));
+	warn("fopen(%s/.depend.start): %s\n", current_dir, strerror(errno));
 	fclose(boot);
 	return;
     }
 
-    info(1, "creating .depend.boot\n");
-    info(1, "creating .depend.start\n");
+    info(1, "creating %s/.depend.boot\n", current_dir);
+    info(1, "creating %s/.depend.start\n", current_dir);
 
     lsort('S');					/* Sort into start order, set new sorder */
 
@@ -977,22 +979,22 @@ static inline void makedep(void)
     fclose(start);
 
     if (!(stop  = fopen(".depend.stop",  "w"))) {
-	warn("fopen(.depend.stop): %s\n", strerror(errno));
+	warn("fopen(%s/.depend.stop): %s\n", current_dir, strerror(errno));
 	return;
     }
 
 #ifdef USE_KILL_IN_BOOT
     if (!(halt = fopen(".depend.halt", "w"))) {
-	warn("fopen(.depend.start): %s\n", strerror(errno));
+	warn("fopen(%s/.depend.start): %s\n", current_dir, strerror(errno));
 	fclose(stop);
 	return;
     }
 
-    info(1, "creating .depend.halt\n");
+    info(1, "creating %s/.depend.halt\n", current_dir);
 #endif /* USE_KILL_IN_BOOT */
-    info(1, "creating .depend.stop\n");
+    info(1, "creating %s/.depend.stop\n", current_dir);
 
-    lsort('K');					/* Sort into stop order, set new korder */
+    lsort('K');				/* Sort into stop order, set new korder */
 
     target = (char*)0;
     fprintf(stop, "TARGETS =");

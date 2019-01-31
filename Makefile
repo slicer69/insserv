@@ -120,10 +120,14 @@ endif
 
 .force:
 
-.PHONY:		clean distclean
-distclean: clean
 clean:
 	$(RM) *.o *~ $(TODO) config.h .depend.* .system
+
+distclean: clean
+	rm -f $(TARBALL) $(TARBALL).sig
+	rm -f tests/insserv
+	rm -f insserv/
+
 
 ifneq ($(MAKECMDGOALS),clean)
 
@@ -214,18 +218,15 @@ upload: $(SFTPBATCH)
 	rm -rf $(TMP)
 
 dist: $(TARBALL).sig
-
+	$(RM) -rf insserv/
 
 $(TARBALL).sig: $(TARBALL)
 	@gpg -q -ba --use-agent -o $@ $<
 
-$(TARBALL): clean
+$(TARBALL): distclean
 	mkdir -p insserv/tests
 	cp $(FILES) insserv/
 	cp tests/* insserv/tests/
 	@tar --xz --owner=nobody --group=nobody -cf $(TARBALL) insserv/
 	rm -rf insserv
 
-distclean: clean
-	rm -f $(TARBALL) $(TARBALL).sig
-	rm -f tests/insserv

@@ -44,6 +44,9 @@ November 2018 - jsmith@resonatingmedia.com
   (or failing to create) files such as .depend.boot, .depend.start
   and .depend.stop.
   Addresses Debian bug #547609
+- Minor fix to Makefile to make sure it cleans up after
+  creating tarball.
+
 
 -------------------------------------------------------------------
 October 2018 - jsmith@resonatingmedia.com

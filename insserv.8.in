@@ -277,7 +277,8 @@ LSB comment headers of scripts in the init.d directory (default path is
 Specify path to init.d directory.  Useful for testing.
 .TP
 .BR \-n ,\  \-\-dryrun, \  \-\-dry\-run
-Do not update symlinks.
+Do not update symlinks. Does not create .depend.boot, .depend.start, and .depend.stop
+files.
 .TP
 .BR \-s ,\  \-\-showall, \ \-\-show\-all
 Output runlevel and sequence information.  Do not update symlinks.

@@ -46,6 +46,8 @@ November 2018 - jsmith@resonatingmedia.com
   Addresses Debian bug #547609
 - Minor fix to Makefile to make sure it cleans up after
   creating tarball.
+- Added patch to make automated builds not require re-building source
+  on Debian.
 
 
 -------------------------------------------------------------------

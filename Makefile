@@ -114,9 +114,11 @@ insserv.8:	insserv.8.in .system
 	sed -r '\!@@BEGIN_SUSE@@!,\!@@(ELSE|END)_SUSE@@!d;\!@@(NOT|END)_SUSE@@!d' < $< > $@
 endif
 
-.system:	SYSTEM=$(shell cat .system 2> /dev/null)
-.system:	.force
-	@test "$(SYSTEM)" = "$(ISSUSE)$(DEBUG)" || echo "$(ISSUSE)$(DEBUG)" > .system
+ifneq ($(shell cat .system 2>/dev/null),$(ISSUSE)$(DEBUG))
+.system-changed = yes
+endif
+.system:	$(if $(.system-changed),.force)
+	@echo "$(ISSUSE)$(DEBUG)" > .system
 
 .force:
 

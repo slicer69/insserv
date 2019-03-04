@@ -2699,6 +2699,7 @@ int main (int argc, char *argv[])
     boolean recursive = false;
     boolean showall = false;
     boolean waserr = false;
+    boolean legacy_path = false;
 
     myname = basename(*argv);
 
@@ -2736,6 +2737,7 @@ int main (int argc, char *argv[])
 		break;
             case 'l':
                 dependency_path = LEGACY_DEPENDENCY_PATH;
+                legacy_path = true;
                 break;
 	    case 'n':
 		verbose ++;
@@ -2785,6 +2787,10 @@ int main (int argc, char *argv[])
 	loadarg = true;
     else if (del)
 	error("usage: %s [[-r] init_script|init_directory]\n", myname);
+
+    /* Make sure the target directory exists */
+    if ( (! dryrun) && (! legacy_path) )
+       mkdir(DEPENDENCY_PATH, 0755);
 
     if (*argv) {
 	char * token = strpbrk(*argv, delimeter);

@@ -184,6 +184,11 @@ static boolean dryrun = false;
 static boolean set_override = false;
 static boolean set_insconf = false;
 
+/* Legacy and current location for dependency files */
+#define DEPENDENCY_PATH "/var/lib/insserv/"
+#define LEGACY_DEPENDENCY_PATH "/etc/init.d/."
+char *dependency_path = DEPENDENCY_PATH;
+
 /* Wether systemd is active or not */
 #if WANT_SYSTEMD
 static boolean systemd = false;
@@ -807,32 +812,33 @@ static inline void makedep(void)
 #endif /* USE_KILL_IN_BOOT */
     const char *target;
     const service_t *serv;
-    char current_dir[PATH_MAX];
+    char current_path[PATH_MAX];
 
-    getcwd(current_dir, PATH_MAX);
     if (dryrun) {
 #ifdef USE_KILL_IN_BOOT
-	info(1, "dryrun, not creating .depend.boot, .depend.start, .depend.halt, and .depend.stop in %s/\n", current_dir);
+	info(1, "dryrun, not creating depend.boot, depend.start, depend.halt, and depend.stop in %s\n", dependency_path);
 #else  /* not USE_KILL_IN_BOOT */
-	info(1, "dryrun, not creating .depend.boot, .depend.start, and .depend.stop in %s/\n", current_dir);
+	info(1, "dryrun, not creating depend.boot, depend.start, and depend.stop in %s\n", dependency_path);
 #endif /* not USE_KILL_IN_BOOT */
 	return;
     }
-    if (!(boot  = fopen(".depend.boot",  "w"))) {
-	warn("fopen(%s/.depend.boot): %s\n", current_dir, strerror(errno));
+    snprintf(current_path, PATH_MAX, "%sdepend.boot", dependency_path);
+    if (!(boot  = fopen(current_path,  "w"))) {
+	warn("fopen(%s): %s\n", current_path, strerror(errno));
 	return;
     }
 
-    if (!(start = fopen(".depend.start", "w"))) {
-	warn("fopen(%s/.depend.start): %s\n", current_dir, strerror(errno));
+    snprintf(current_path, PATH_MAX, "%sdepend.start", dependency_path);
+    if (!(start = fopen(current_path, "w"))) {
+	warn("fopen(%s): %s\n", current_path, strerror(errno));
 	fclose(boot);
 	return;
     }
 
-    info(1, "creating %s/.depend.boot\n", current_dir);
-    info(1, "creating %s/.depend.start\n", current_dir);
+    info(1, "creating %sdepend.boot\n", dependency_path);
+    info(1, "creating %sdepend.start\n", dependency_path);
 
-    lsort('S');					/* Sort into start order, set new sorder */
+    lsort('S');				/* Sort into start order, set new sorder */
 
     target = (char*)0;
     fprintf(boot, "TARGETS =");
@@ -978,21 +984,23 @@ static inline void makedep(void)
     fclose(boot);
     fclose(start);
 
-    if (!(stop  = fopen(".depend.stop",  "w"))) {
-	warn("fopen(%s/.depend.stop): %s\n", current_dir, strerror(errno));
+    snprintf(current_path, PATH_MAX, "%sdepend.stop", dependency_path);
+    if (!(stop  = fopen(current_path,  "w"))) {
+	warn("fopen(%s): %s\n", current_path, strerror(errno));
 	return;
     }
 
 #ifdef USE_KILL_IN_BOOT
-    if (!(halt = fopen(".depend.halt", "w"))) {
-	warn("fopen(%s/.depend.start): %s\n", current_dir, strerror(errno));
+    snprintf(current_path, PATH_MAX, "%sdepend.halt", dependency_path);
+    if (!(halt = fopen(current_path, "w"))) {
+	warn("fopen(%s): %s\n", current_path, strerror(errno));
 	fclose(stop);
 	return;
     }
 
-    info(1, "creating %s/.depend.halt\n", current_dir);
+    info(1, "creating %sdepend.halt\n", dependency_path);
 #endif /* USE_KILL_IN_BOOT */
-    info(1, "creating %s/.depend.stop\n", current_dir);
+    info(1, "creating %sdepend.stop\n", dependency_path);
 
     lsort('K');				/* Sort into stop order, set new korder */
 
@@ -2637,6 +2645,7 @@ static struct option long_options[] =
     {"default",	    0, (int*)0, 'd'},
     {"remove",	    0, (int*)0, 'r'},
     {"force",	    0, (int*)0, 'f'},
+    {"legacy-path", 0, (int*)0, 'l'},
     {"path",	    1, (int*)0, 'p'},
     {"override",    1, (int*)0, 'o'},
     {"upstart-job", 1, (int*)0, 'u'},
@@ -2656,6 +2665,7 @@ static void help(const char *restrict const  name)
     printf("  -r, --remove     Remove the listed scripts from all runlevels.\n");
     printf("  -f, --force      Ignore if a required service is missed.\n");
     printf("  -v, --verbose    Provide information on what is being done.\n");
+    printf("  -l, --legacy-path  Place dependency files in /etc/init.d instead of /var/lib/insserv.\n");
     printf("  -p <path>, --path <path>  Path to replace " INITDIR ".\n");
     printf("  -o <path>, --override <path> Path to replace " OVERRIDEDIR ".\n");
     printf("  -c <config>, --config <config>  Path to config file.\n");
@@ -2703,7 +2713,7 @@ int main (int argc, char *argv[])
     for (c = 0; c < argc; c++)
 	argr[c] = (char*)0;
 
-    while ((c = getopt_long(argc, argv, "c:dfrhvno:p:u:es", long_options, (int *)0)) != -1) {
+    while ((c = getopt_long(argc, argv, "c:dfrhlvno:p:u:es", long_options, (int *)0)) != -1) {
 	size_t l;
 	switch (c) {
 	    case 'c':
@@ -2724,6 +2734,9 @@ int main (int argc, char *argv[])
 	    case 'v':
 		verbose ++;
 		break;
+            case 'l':
+                dependency_path = LEGACY_DEPENDENCY_PATH;
+                break;
 	    case 'n':
 		verbose ++;
 		dryrun = true;

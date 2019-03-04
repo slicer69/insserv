@@ -268,6 +268,12 @@ Write out what is currently going on.
 Specify path to the insserv.conf file and the insserv.conf.d
 directory.  Useful for testing.
 .TP
+.BR \-l ,\ \-\-legacy\-path
+By default, insserv places Makefile-style dependency information in
+the /var/lib/insserv/ directory. In insserv 1.19.0 and earlier this
+information was stored in /etc/init.d/. Using the \-l flag uses the
+old, /etc/init.d/ directory to store dependency information.
+.TP
 .BR \-o\ <path> ,\  \-\-override\ <path>
 LSB comment headers found in this path will override existing
 LSB comment headers of scripts in the init.d directory (default path is
@@ -448,11 +454,11 @@ SuSE
 init script base directory as
 required by the Linux Standard Base Specification (LSB).
 .PP
-.IR /etc/init.d/.depend.boot ,
+.IR /var/lib/insserv/depend.boot ,
 .br
-.IR /etc/init.d/.depend.start ,
+.IR /var/lib/insserv/depend.start ,
 .br
-.I /etc/init.d/.depend.stop
+.I /var/lib/insserv/depend.stop
 .in +\n(INu
 The
 .BR make (1)
@@ -484,7 +490,7 @@ with the help of
 .br
 2007\(en2009 SuSE Linux Products GmbH Nuernberg, Germany.
 .br
-2018\(en     Jesse Smith
+2019\(en     Jesse Smith
 .SH AUTHOR
 Werner Fink <feedback@suse.de>
 .SH CONTRIBUTORS

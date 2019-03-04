@@ -1,3 +1,13 @@
+March 2019 - jsmith@resonatingmedia.com
+
+- The insserv command now places Makefile-style
+  dependency files in the /var/lib/insserv/ directory.
+  This information was previously kept in /etc/init.d/.
+  The --legacy-path (-l) flag has been added to insserv's
+  command line options which allows the old, /etc/init.d/
+  path to be used to store dependeny information.
+
+
 November 2018 - jsmith@resonatingmedia.com
 
 - Applied distro-independent patches from Debian to

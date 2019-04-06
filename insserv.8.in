@@ -467,7 +467,7 @@ like dependency files produced by
 for
 .IR booting ", " starting ", and " stopping
 with the help of
-.BR startpar (8).
+.BR startpar (1).
 +.in -\n(INu
 .\"
 .SH SEE ALSO
@@ -480,7 +480,7 @@ with the help of
 .BR checkproc (8),
 .BR killproc (8),
 @@END_SUSE@@
-.BR startpar (8).
+.BR startpar (1).
 .SH COPYRIGHT
 2000\(en2009 Werner Fink,
 .br

@@ -6,7 +6,8 @@ March 2019 - jsmith@resonatingmedia.com
   The --legacy-path (-l) flag has been added to insserv's
   command line options which allows the old, /etc/init.d/
   path to be used to store dependeny information.
-
+- Update insserv manual page to refer to startpar(1)
+  instead of startpar(8).
 
 November 2018 - jsmith@resonatingmedia.com
 

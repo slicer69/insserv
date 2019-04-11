@@ -2636,6 +2636,30 @@ static void forward_to_systemd (const char *initscript, const char *verb, boolea
 
 #endif /* WANT_SYSTEMD */
 
+/* See if the start and stop runlevels of a script use the same
+   stop or stop levels.
+   Returns true if overlap is found and false is none is found.
+*/
+boolean Start_Stop_Overlap(char *start_levels, char *stop_levels)
+{
+   boolean found_overlap = false;
+   int string_index = 0;
+   char *found;
+
+   while (start_levels[string_index])   /* go to end of string */
+   {
+       if (start_levels[string_index] != ' ') /* skip spaces */
+       {
+           found = strchr(stop_levels, start_levels[string_index]);
+           if (found)
+              found_overlap = true;
+       }
+       string_index++;
+   }
+   return found_overlap;
+}
+
+
 static struct option long_options[] =
 {
     {"verbose",	    0, (int*)0, 'v'},
@@ -2700,6 +2724,7 @@ int main (int argc, char *argv[])
     boolean showall = false;
     boolean waserr = false;
     boolean legacy_path = false;
+    boolean overlap;
 
     myname = basename(*argv);
 
@@ -3452,8 +3477,11 @@ int main (int argc, char *argv[])
 			     */
 			    if (!defaults && (deflvls != service->start->lvl)) {
 				if (!del && isarg && !(argr[curr_argc]))
+                                {
 				    warn("warning: current start runlevel(s) (%s) of script `%s' overrides LSB defaults (%s).\n",
-					 service->start->lvl ? lvl2str(service->start->lvl) : "empty", d->d_name, lvl2str(deflvls));
+                                           service->start->lvl ? lvl2str(service->start->lvl) :
+                                           "empty", d->d_name, lvl2str(deflvls));
+                                }
 			    }
 			} else
 			    /*
@@ -3588,6 +3616,13 @@ int main (int argc, char *argv[])
 	    script_inf.default_stop = empty;
 	}
 #endif /* not SUSE */
+
+        overlap = Start_Stop_Overlap(script_inf.default_start, script_inf.default_stop);
+        if (overlap)
+        {
+            warn("Script %s has overlapping Default-Start and Default-Stop runlevels (%s) and (%s). This should be fixed.\n",
+                  d->d_name, script_inf.default_start, script_inf.default_stop);
+        }
 
 	if (isarg && !defaults && !del) {
 	    if (argr[curr_argc]) {

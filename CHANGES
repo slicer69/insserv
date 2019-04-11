@@ -8,6 +8,10 @@ March 2019 - jsmith@resonatingmedia.com
   path to be used to store dependeny information.
 - Update insserv manual page to refer to startpar(1)
   instead of startpar(8).
+- The insserv program now warns when a script has the
+  same runlevel specified in both the Default-Start
+  and Default-Stop fields of its LSB header.
+  Should close Debian bug #538304.
 
 November 2018 - jsmith@resonatingmedia.com
 

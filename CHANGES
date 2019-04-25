@@ -12,6 +12,8 @@ March 2019 - jsmith@resonatingmedia.com
   same runlevel specified in both the Default-Start
   and Default-Stop fields of its LSB header.
   Should close Debian bug #538304.
+- Added tests/run-testsuite to Makefile's "check" target
+  for Debian bug #926547.
 
 November 2018 - jsmith@resonatingmedia.com
 

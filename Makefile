@@ -149,6 +149,7 @@ ifeq ($(ISSUSE),-DSUSE)
 #	issuse=true tests/suse
 else
 	tests/common
+	cd tests && severity=check ./run-testsuite
 endif
 
 install:	$(TODO) 

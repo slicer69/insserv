@@ -9,6 +9,7 @@ export LANG=POSIX
 : ${insserv:=${PWD}/insserv}
 : ${tmpdir:=${PWD}/root}
 : ${initddir:=${tmpdir}/etc/init.d}
+: ${insservdir:=${tmpdir}/var/lib/insserv}
 : ${insconf:=${tmpdir}/etc/insserv.conf}
 : ${overridedir:=${tmpdir}/etc/insserv/override}
 : ${issuse=""}
@@ -31,6 +32,7 @@ finish_test ()
 trap 'finish_test' EXIT
 
 mkdir -p $initddir
+mkdir -p $insservdir
 
 if test -n "${issuse}" ; then
     runlevel_path ()
@@ -113,7 +115,9 @@ insserv_del ()
 initdir_purge ()
 {
     rm -rf ${initddir}/../rc*.d ${initddir}
+    rm -rf ${insservdir}
     mkdir -p ${initddir}
+    mkdir -p ${insservdir}
 }
 
 relpath ()

@@ -9,7 +9,7 @@ INITDIR  =	/etc/init.d
 INSCONF  =	/etc/insserv.conf
 #DESTDIR =	/tmp/root
 #DEBUG	 =	-DDEBUG=1 -Wpacked
-DEBUG	 =
+DEBUG	 =	
 #ISSUSE	 =	-DSUSE
 DESTDIR	 =
 VERSION	 =	1.20.0
@@ -76,7 +76,6 @@ endif
 TODO	=	insserv insserv.8
 
 all:		$(TODO)
-	$(LINK) ../insserv tests/insserv
 
 insserv:	insserv.o listing.o systemd.o map.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -127,7 +126,6 @@ clean:
 
 distclean: clean
 	rm -f $(TARBALL) $(TARBALL).sig
-	rm -f tests/insserv
 	rm -f insserv/
 
 

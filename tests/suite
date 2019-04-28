@@ -6,7 +6,7 @@ set +o posix
 unset ${!LC@}
 export LANG=POSIX
 
-: ${insserv:=${PWD}/insserv}
+: ${insserv:=${PWD}/../insserv}
 : ${tmpdir:=${PWD}/root}
 : ${initddir:=${tmpdir}/etc/init.d}
 : ${insservdir:=${tmpdir}/var/lib/insserv}
@@ -103,7 +103,7 @@ chmod u+w,a+r $insconf
 insserv_reg ()
 {
     script=$(printf "${initddir}/%s\n" ${1+"$@"})
-    $insserv $debug -c $insconf -p $initddir -o $overridedir $script
+    $insserv $debug -c $insconf -p $initddir -o $overridedir $script 
 }
 
 insserv_del ()

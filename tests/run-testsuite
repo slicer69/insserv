@@ -1911,7 +1911,7 @@ fi
 test_insserv_conf_makefile() {
 echo
 echo "info: test how recursive /etc/insserv.conf settings show up"
-echo "info: in .depend.boot.  BTS #534526."
+echo "info: in depend.boot.  BTS #534526."
 echo
 
 initdir_purge
@@ -1961,11 +1961,7 @@ list_rclinks
 
 if ! grep -q "^hal: mountall dbus" ${insservdir}/depend.start ; then
     msg="hal should depend on dbus and mountall in depend.start:"
-    if [ test = "$severity" ] ; then
-        warning "$msg"
-    else
-        error "$msg"
-    fi
+    error "$msg"
     grep  "^hal: " ${insservdir}/depend.start | sed 's/^/  /'
 fi
 

@@ -14,6 +14,10 @@ March 2019 - jsmith@resonatingmedia.com
   Should close Debian bug #538304.
 - Added tests/run-testsuite to Makefile's "check" target
   for Debian bug #926547.
+- Fixed minor typos in output text and in man page.
+- Added -i flag for insserv which allows user to specify
+  a specific directory for the Makefile-style depdnency files.
+
 
 November 2018 - jsmith@resonatingmedia.com
 

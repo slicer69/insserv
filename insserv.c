@@ -2450,7 +2450,7 @@ static inline void expand_conf(void)
 
 /*
  * Scan for a Start or Kill script within a runlevel directory.
- * We start were we leave the directory, the upper level
+ * We start where we leave the directory, the upper level
  * has to call rewinddir(3) if necessary.
  */
 static inline char * scan_for(DIR *const restrict rcdir,
@@ -2669,6 +2669,7 @@ static struct option long_options[] =
     {"default",	    0, (int*)0, 'd'},
     {"remove",	    0, (int*)0, 'r'},
     {"force",	    0, (int*)0, 'f'},
+    {"insserv-dir", 1, (int*)0, 'i'},
     {"legacy-path", 0, (int*)0, 'l'},
     {"path",	    1, (int*)0, 'p'},
     {"override",    1, (int*)0, 'o'},
@@ -2690,6 +2691,7 @@ static void help(const char *restrict const  name)
     printf("  -f, --force      Ignore if a required service is missed.\n");
     printf("  -v, --verbose    Provide information on what is being done.\n");
     printf("  -l, --legacy-path  Place dependency files in /etc/init.d instead of /var/lib/insserv.\n");
+    printf("  -i, --insserv-dir  Place dependency files in a location other than /var/lib/insserv\n");
     printf("  -p <path>, --path <path>  Path to replace " INITDIR ".\n");
     printf("  -o <path>, --override <path> Path to replace " OVERRIDEDIR ".\n");
     printf("  -c <config>, --config <config>  Path to config file.\n");
@@ -2724,6 +2726,7 @@ int main (int argc, char *argv[])
     boolean showall = false;
     boolean waserr = false;
     boolean legacy_path = false;
+    boolean free_dependency_path = false;
     boolean overlap;
 
     myname = basename(*argv);
@@ -2739,7 +2742,7 @@ int main (int argc, char *argv[])
     for (c = 0; c < argc; c++)
 	argr[c] = (char*)0;
 
-    while ((c = getopt_long(argc, argv, "c:dfrhlvno:p:u:es", long_options, (int *)0)) != -1) {
+    while ((c = getopt_long(argc, argv, "c:dfrhlvni:o:p:u:es", long_options, (int *)0)) != -1) {
 	size_t l;
 	switch (c) {
 	    case 'c':
@@ -2763,6 +2766,22 @@ int main (int argc, char *argv[])
             case 'l':
                 dependency_path = LEGACY_DEPENDENCY_PATH;
                 legacy_path = true;
+                break;
+            case 'i':
+                if ( (! optarg) || (! optarg[0]) )
+                {
+                    fprintf(stderr, "Please provide a valid path\n");
+                    goto err;
+                }
+                if (optarg[0] == '/')    // absolute path
+                   asprintf(&dependency_path, "%s/", optarg);
+                else                     // relative
+                {
+                   char current_dir[PATH_MAX];
+                   getcwd(current_dir, PATH_MAX);
+                   asprintf(&dependency_path, "%s/%s/", current_dir, optarg);
+                }
+                free_dependency_path = true;
                 break;
 	    case 'n':
 		verbose ++;
@@ -3612,7 +3631,7 @@ int main (int argc, char *argv[])
 	}
 #else  /* not SUSE */
 	if (!script_inf.default_stop) {
-	    warn("Default-Stop  undefined, assuming empty stop  runlevel(s) for script `%s'\n", d->d_name);
+	    warn("Default-Stop  undefined, assuming empty stop runlevel(s) for script `%s'\n", d->d_name);
 	    script_inf.default_stop = empty;
 	}
 #endif /* not SUSE */
@@ -4242,6 +4261,6 @@ int main (int argc, char *argv[])
      */
     if (path != ipath) free(path);
     if (root) free(root);
-
+    if (free_dependency_path) free(dependency_path);
     return 0;
 }

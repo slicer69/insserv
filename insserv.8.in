@@ -274,6 +274,12 @@ the /var/lib/insserv/ directory. In insserv 1.19.0 and earlier this
 information was stored in /etc/init.d/. Using the \-l flag uses the
 old, /etc/init.d/ directory to store dependency information.
 .TP
+.BR \-i , \ \-\-insserv\-dir
+The insserv program will try to place dependency information
+in the /var/lib/insserv/ directory. When using the \-i flag, the
+user can specify an alternative directory for dependency information.
+This is typically used when debugging insserv.
+.TP
 .BR \-o\ <path> ,\  \-\-override\ <path>
 LSB comment headers found in this path will override existing
 LSB comment headers of scripts in the init.d directory (default path is
@@ -283,7 +289,7 @@ LSB comment headers of scripts in the init.d directory (default path is
 Specify path to init.d directory.  Useful for testing.
 .TP
 .BR \-n ,\  \-\-dryrun, \  \-\-dry\-run
-Do not update symlinks. Does not create .depend.boot, .depend.start, and .depend.stop
+Do not update symlinks. Does not create depend.boot, depend.start, and depend.stop
 files.
 .TP
 .BR \-s ,\  \-\-showall, \ \-\-show\-all

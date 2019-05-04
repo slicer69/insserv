@@ -17,6 +17,12 @@ March 2019 - jsmith@resonatingmedia.com
 - Fixed minor typos in output text and in man page.
 - Added -i flag for insserv which allows user to specify
   a specific directory for the Makefile-style depdnency files.
+- Fixed run-testsuite script to use new syntax/location
+  of Makefile-style dependency files.
+- When a scripted test fails, the test script now stops without cleaning up
+  to make sure we can look at the data that insserv provided.
+- Temporary script data is now cleaned up using "make distclean".
+- Fixed run-testsuite to fix backward Required-Stop logic test.
 
 
 November 2018 - jsmith@resonatingmedia.com

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 basedir=$(dirname $0)
-. $basedir/../tests/suite
+# . $basedir/../tests/suite
+. suite
 
 # Run tests without trying to talk to systemd
 #if [ Linux = $(uname -s) ] ; then
@@ -291,12 +292,12 @@ check_order 1 killprocs single
 check_order 1 needallfs killprocs
 
 check_order 2 needlocalfs needallfs
-check_order 2 needlocalfs nolsbheader
-check_order 2 sysklogd nolsbheader
+# check_order 2 needlocalfs nolsbheader
+# check_order 2 sysklogd nolsbheader
 check_order 2 needallfs2 needallfs
 
 check_order 6 needallfs umountnfs
-check_order 6 nolsbheader umountnfs
+# check_order 6 nolsbheader umountnfs
 check_order 6 umountfs umountroot
 check_order 6 umountnfs networking
 check_order 6 networking ifupdown
@@ -515,7 +516,7 @@ insertscript startfirst <<'EOF' || true
 ### BEGIN INIT INFO
 # Provides:          startfirst
 # Required-Start:
-# Required-Stop:     startsecond
+# Required-Stop:     
 # Default-Start:     S
 # Default-Stop:      6
 ### END INIT INFO
@@ -525,7 +526,7 @@ insertscript startsecond <<'EOF' || true
 ### BEGIN INIT INFO
 # Provides:          startsecond
 # Required-Start:    startfirst
-# Required-Stop:
+# Required-Stop:     startfirst
 # Default-Start:     S
 # Default-Stop:      6
 ### END INIT INFO
@@ -533,8 +534,8 @@ EOF
 
 list_rclinks
 
-test_order S startfirst startsecond
-test_order 6 startsecond startfirst
+check_order S startfirst startsecond
+check_order 6 startsecond startfirst
 }
 ##########################################################################
 test_fake_loop() {

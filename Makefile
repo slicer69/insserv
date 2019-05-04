@@ -126,7 +126,8 @@ clean:
 
 distclean: clean
 	rm -f $(TARBALL) $(TARBALL).sig
-	rm -f insserv/
+	rm -f insserv
+	rm -rf tests/root
 
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -142,11 +143,12 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 check: insserv
+	rm -rf tests/root/
 ifeq ($(ISSUSE),-DSUSE)
 	issuse=true tests/common
 #	issuse=true tests/suse
 else
-	tests/common
+	cd tests && ./common
 	cd tests && severity=check ./run-testsuite
 endif
 

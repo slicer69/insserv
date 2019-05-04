@@ -25,8 +25,8 @@ finish_test ()
         echo "error: $testcount test executed, $checkfailed fatal tests failed, $testfailed nonfatal test failed."
     else
         echo "success: $testcount test executed, $testfailed nonfatal tests failed."
+        rm -rf ${tmpdir}
     fi
-    rm -rf ${tmpdir}
     return $retval
 }
 trap 'finish_test' EXIT
@@ -103,13 +103,13 @@ chmod u+w,a+r $insconf
 insserv_reg ()
 {
     script=$(printf "${initddir}/%s\n" ${1+"$@"})
-    $insserv $debug -c $insconf -p $initddir -o $overridedir $script 
+    $insserv $debug -c $insconf -i $insservdir -p $initddir -o $overridedir $script
 }
 
 insserv_del ()
 {
     script=$(printf "${initddir}/%s\n" ${1+"$@"})
-    $insserv $debug -c $insconf -p $initddir -o $overridedir -r $script
+    $insserv $debug -c $insconf -i $insservdir -p $initddir -o $overridedir -r $script
 }
 
 initdir_purge ()
@@ -211,12 +211,14 @@ error ()
     echo error: $@
     checkfailed=$(expr $checkfailed + 1)
     retval=1
+    exit 1
 }
 
 warning ()
 {
     echo warning: $@
     testfailed=$(expr $testfailed + 1)
+    exit 1
 }
 
 addscript ()

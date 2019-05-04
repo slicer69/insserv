@@ -1320,7 +1320,9 @@ insserv_reg needbogusvirtual || true
 
 list_rclinks
 
-test_script_not_present S needbogusvirtual
+# This check is no longer needed as insserv will display a warning
+# for unmet dependencies/services.
+# check_script_not_present S needbogusvirtual
 }
 ##########################################################################
 test_insserv_conf_d() {

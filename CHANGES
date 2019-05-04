@@ -23,7 +23,9 @@ March 2019 - jsmith@resonatingmedia.com
   to make sure we can look at the data that insserv provided.
 - Temporary script data is now cleaned up using "make distclean".
 - Fixed run-testsuite to fix backward Required-Stop logic test.
-
+- When an initscript contains a "$service" dependency which
+  cannot be resolved (ie $service does not expand or does not exist)
+  insserv will display a warning. The initscript is still added.
 
 November 2018 - jsmith@resonatingmedia.com
 

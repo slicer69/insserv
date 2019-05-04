@@ -331,6 +331,7 @@ static void rememberreq(service_t * restrict serv, uint bit, const char * restri
     char * tmp = strdupa(required);
     list_t * ptr, * list;
     ushort old = bit;
+    boolean can_expand_name = false;
 
     if (!tmp)
 	error("%s", strerror(errno));
@@ -391,14 +392,19 @@ static void rememberreq(service_t * restrict serv, uint bit, const char * restri
 		break;
 	    }
 	    /* Expand the `$' token recursively down */
+            can_expand_name = false;
 	    list_for_each(ptr, sysfaci_start) {
 		if (!strcmp(token, getfaci(ptr)->name)) {
 		    list_t * lst;
+                    can_expand_name = true;
 		    np_list_for_each(lst, &getfaci(ptr)->replace)
 			rememberreq(serv, bit, getrepl(lst)->name);
 		    break;
 		}
 	    }
+            if (! can_expand_name)
+               warn("warning: could not find all dependencies for %s\n", token);
+
 	    break;
 	}
     }

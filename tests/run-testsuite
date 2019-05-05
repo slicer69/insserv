@@ -1701,7 +1701,7 @@ list_rclinks
 
 check_script_present 5 rmnologin
 check_script_present 5 bootchart
-test_order 5 rmnologin bootchart
+check_order 5 bootchart rmnologin
 
 echo
 echo "info: now add \$all keyword to bootchart script and reinsert"
@@ -1725,7 +1725,7 @@ insserv_reg bootchart || true
 
 list_rclinks
 check_script_present 5 bootchart
-test_order 5 rmnologin bootchart
+check_order 5 rmnologin bootchart
 
 echo
 echo "info: add yet another script depending on \$all"

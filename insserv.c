@@ -189,6 +189,12 @@ static boolean set_insconf = false;
 #define LEGACY_DEPENDENCY_PATH "/etc/init.d/."
 char *dependency_path = DEPENDENCY_PATH;
 
+/* List of custom file extensions we should ignore.
+   Loaded from /etc/insserv/file-filters.
+*/
+#define FILE_FILTER_PATH "/etc/insserv/file-filters"
+char **file_filters = NULL;
+
 /* Wether systemd is active or not */
 #if WANT_SYSTEMD
 static boolean systemd = false;
@@ -288,6 +294,69 @@ static void popd(void)
        free(dir);
    }
 }
+
+
+/*
+This function loads a list of newline-separated extensions from
+the FILE_FILTER_PATH text file.
+The function returns an array of strings (extensions) on success
+and NULL on failure.
+*/
+char **Load_File_Filters()
+{
+  FILE *my_file;
+  char **temp_strings;
+  char line[32];
+  char *status;
+  int read_lines = 0;
+  int buffer_size = 10;
+  
+  my_file = fopen(FILE_FILTER_PATH, "r");
+  if (! my_file)
+     return NULL;
+
+  temp_strings = (char **) calloc(buffer_size, sizeof(char *));
+  if (! temp_strings)
+  {
+     fclose(my_file);
+     return NULL;
+  }
+  status = fgets(line, 32, my_file);
+  while (status)
+  {
+     /* check to see if line has any contents */
+     if ( (line[0]) && (line[0] != '\n') && (line[0] != '\r') )
+     {
+        int string_length;
+        /* trim newline */
+        string_length = strlen(line);
+        if ( line[string_length - 1] == '\n' )
+           line[string_length - 1] = '\0';
+
+        temp_strings[read_lines] = strdup(line);
+        read_lines++;
+        /* buffer may be full, extend it */
+        if (read_lines >= 1000)     /* too big, bail out */
+        {
+           warn("warning: too many file extensions listed in %s\n", FILE_FILTER_PATH);
+           break;
+        } 
+        if (read_lines >= buffer_size) 
+        {
+           int index;
+           buffer_size += 10;    /* extend the buffer */
+           temp_strings = (char **) realloc(temp_strings, buffer_size * sizeof(char *));
+           for (index = read_lines; index < buffer_size; index++)
+             temp_strings[index] = NULL;   /* init memory since realloc does not */
+        }
+     }
+     status = fgets(line, 32, my_file);
+  }
+  fclose(my_file);
+  return temp_strings;
+}
+
+
 
 /*
  * Linked list of system facilities services and their replacment
@@ -2173,6 +2242,21 @@ static int cfgfile_filter(const struct dirent *restrict d)
 	{
 	    goto out;
 	}
+        /* check loaded filters */
+        else if (file_filters)
+        {
+            boolean found = false;
+            int index = 0;
+            while ( (file_filters[index]) && (! found) )
+            {
+                if (! strcmp(end, file_filters[index]) )
+                   found = true;
+                else
+                   index++;
+            }
+            if (found)
+               goto out;
+        }
     }
     if ((end = strrchr(name, ','))) {
 	end++;
@@ -2841,6 +2925,9 @@ int main (int argc, char *argv[])
     /* Make sure the target directory exists */
     if ( (! dryrun) && (! legacy_path) )
        mkdir(DEPENDENCY_PATH, 0755);
+
+    /* load options from /etc/inssserv/ directory */
+    file_filters = Load_File_Filters();
 
     if (*argv) {
 	char * token = strpbrk(*argv, delimeter);
@@ -4268,5 +4355,15 @@ int main (int argc, char *argv[])
     if (path != ipath) free(path);
     if (root) free(root);
     if (free_dependency_path) free(dependency_path);
+    if (file_filters)
+    {
+       int count = 0;
+       while (file_filters[count])
+       {
+           free(file_filters[count]);
+           count++;
+       }
+       free(file_filters);
+    }
     return 0;
 }

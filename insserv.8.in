@@ -433,6 +433,15 @@ of the following characters
 .in -1l
 .sp 1
 will be ignored.
+Administrators can further filter files by extension in the /etc/init.d/ directory
+by creating a text file called /etc/insserv/file\-filters. The file\-filters configuration
+file lists (one per line) extensions which should be ignored by insserv as it parses the
+/etc/init.d/ directory. An example of /etc/insserv/file\-filters might look like this:
+.nf
+	git
+	svn
+	html
+.fi
 .SH BUGS
 Boot scripts sometimes lack a LSB comment header.  Contact a package
 maintainer or developer of the software which provides the script to
@@ -451,6 +460,10 @@ LSB System Facilities.
 .I /etc/insserv/overrides/
 path to replace existing LSB comment headers with the comment
 headers found in this path.
+.TP
+.I /etc/insserv/file\-filters
+configuration file which lists file extensions (one per line) we should ignore
+when parsing the init.d directory.
 .TP
 .I /etc/init.d/
 path to the

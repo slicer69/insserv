@@ -26,6 +26,11 @@ March 2019 - jsmith@resonatingmedia.com
 - When an initscript contains a "$service" dependency which
   cannot be resolved (ie $service does not expand or does not exist)
   insserv will display a warning. The initscript is still added.
+- The insserv program now loads optional extensions from /etc/insserv/file-filters
+  which will be ignored if found in the init.d directory. This allows admins
+  to filter out file extensions which may be used to manage services (such as 
+  .git or .puppet).
+  Closes Debian bug #622878
 
 November 2018 - jsmith@resonatingmedia.com
 

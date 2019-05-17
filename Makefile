@@ -163,7 +163,9 @@ ifeq ($(ISSUSE),-DSUSE)
 endif
 	$(INSTBIN) insserv        $(SBINDIR)/
 	$(INSTDOC) insserv.8      $(SDOCDIR)/
-	$(INSTCON) insserv.conf   $(CONFDIR)/
+	# Only install configuration file if it does not exist. Do not overwrite distro config.
+	if [ -f $(CONFDIR)/insserv.conf ]; then $(INSTCON) insserv.conf $(CONFDIR)/insserv.conf.sample ; fi
+	if [ ! -f $(CONFDIR)/insserv.conf ] ; then $(INSTCON) insserv.conf $(CONFDIR)/ ; fi
 ifeq ($(ISSUSE),-DSUSE)
 	$(INSTCON) init-functions $(LSBDIR)/
 	$(INSTSRP) install_initd  $(USRLSBDIR)/

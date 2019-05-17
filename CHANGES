@@ -1,4 +1,4 @@
-March 2019 - jsmith@resonatingmedia.com
+May 2019 (1.20.0) - jsmith@resonatingmedia.com
 
 - The insserv command now places Makefile-style
   dependency files in the /var/lib/insserv/ directory.
@@ -31,6 +31,10 @@ March 2019 - jsmith@resonatingmedia.com
   to filter out file extensions which may be used to manage services (such as 
   .git or .puppet).
   Closes Debian bug #622878
+- The Makefile no longer overwrites existing /etc/insserv.conf file if it exists.
+  This could cause errors next tme insserv was run if distro-specific/local
+  changes were overwritten. If the /etc/insserv.conf file already exists
+  we make a new file called /etc/insserv.conf.sample instead.
 
 November 2018 - jsmith@resonatingmedia.com
 

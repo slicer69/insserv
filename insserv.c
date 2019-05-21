@@ -185,7 +185,7 @@ static boolean set_override = false;
 static boolean set_insconf = false;
 
 /* Legacy and current location for dependency files */
-#define DEPENDENCY_PATH "/var/lib/insserv/"
+#define DEPENDENCY_PATH "/lib/insserv/"
 #define LEGACY_DEPENDENCY_PATH "/etc/init.d/."
 char *dependency_path = DEPENDENCY_PATH;
 
@@ -2780,8 +2780,8 @@ static void help(const char *restrict const  name)
     printf("  -r, --remove     Remove the listed scripts from all runlevels.\n");
     printf("  -f, --force      Ignore if a required service is missed.\n");
     printf("  -v, --verbose    Provide information on what is being done.\n");
-    printf("  -l, --legacy-path  Place dependency files in /etc/init.d instead of /var/lib/insserv.\n");
-    printf("  -i, --insserv-dir  Place dependency files in a location other than /var/lib/insserv\n");
+    printf("  -l, --legacy-path  Place dependency files in /etc/init.d instead of /lib/insserv.\n");
+    printf("  -i, --insserv-dir  Place dependency files in a location other than /lib/insserv\n");
     printf("  -p <path>, --path <path>  Path to replace " INITDIR ".\n");
     printf("  -o <path>, --override <path> Path to replace " OVERRIDEDIR ".\n");
     printf("  -c <config>, --config <config>  Path to config file.\n");

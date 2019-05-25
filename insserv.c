@@ -2760,7 +2760,7 @@ static struct option long_options[] =
     {"remove",	    0, (int*)0, 'r'},
     {"force",	    0, (int*)0, 'f'},
     {"insserv-dir", 1, (int*)0, 'i'},
-    {"legacy-path", 0, (int*)0, 'l'},
+    /* {"legacy-path", 0, (int*)0, 'l'}, */
     {"path",	    1, (int*)0, 'p'},
     {"override",    1, (int*)0, 'o'},
     {"upstart-job", 1, (int*)0, 'u'},
@@ -2780,7 +2780,7 @@ static void help(const char *restrict const  name)
     printf("  -r, --remove     Remove the listed scripts from all runlevels.\n");
     printf("  -f, --force      Ignore if a required service is missed.\n");
     printf("  -v, --verbose    Provide information on what is being done.\n");
-    printf("  -l, --legacy-path  Place dependency files in /etc/init.d instead of /lib/insserv.\n");
+    /* printf("  -l, --legacy-path  Place dependency files in /etc/init.d instead of /lib/insserv.\n"); */
     printf("  -i, --insserv-dir  Place dependency files in a location other than /lib/insserv\n");
     printf("  -p <path>, --path <path>  Path to replace " INITDIR ".\n");
     printf("  -o <path>, --override <path> Path to replace " OVERRIDEDIR ".\n");

@@ -185,9 +185,9 @@ static boolean set_override = false;
 static boolean set_insconf = false;
 
 /* Legacy and current location for dependency files */
-#define DEPENDENCY_PATH "/lib/insserv/"
+/* #define DEPENDENCY_PATH "/lib/insserv/" */
 #define LEGACY_DEPENDENCY_PATH "/etc/init.d/."
-char *dependency_path = DEPENDENCY_PATH;
+char *dependency_path = LEGACY_DEPENDENCY_PATH;
 
 /* List of custom file extensions we should ignore.
    Loaded from /etc/insserv/file-filters.
@@ -2815,7 +2815,7 @@ int main (int argc, char *argv[])
     boolean recursive = false;
     boolean showall = false;
     boolean waserr = false;
-    boolean legacy_path = false;
+    /* boolean legacy_path = false; */
     boolean free_dependency_path = false;
     boolean overlap;
 
@@ -2832,7 +2832,7 @@ int main (int argc, char *argv[])
     for (c = 0; c < argc; c++)
 	argr[c] = (char*)0;
 
-    while ((c = getopt_long(argc, argv, "c:dfrhlvni:o:p:u:es", long_options, (int *)0)) != -1) {
+    while ((c = getopt_long(argc, argv, "c:dfrhvni:o:p:u:es", long_options, (int *)0)) != -1) {
 	size_t l;
 	switch (c) {
 	    case 'c':
@@ -2853,10 +2853,12 @@ int main (int argc, char *argv[])
 	    case 'v':
 		verbose ++;
 		break;
+            /*
             case 'l':
                 dependency_path = LEGACY_DEPENDENCY_PATH;
                 legacy_path = true;
                 break;
+            */
             case 'i':
                 if ( (! optarg) || (! optarg[0]) )
                 {
@@ -2923,8 +2925,10 @@ int main (int argc, char *argv[])
 	error("usage: %s [[-r] init_script|init_directory]\n", myname);
 
     /* Make sure the target directory exists */
+    /*
     if ( (! dryrun) && (! legacy_path) )
        mkdir(DEPENDENCY_PATH, 0755);
+    */
 
     /* load options from /etc/inssserv/ directory */
     file_filters = Load_File_Filters();
@@ -4354,7 +4358,8 @@ int main (int argc, char *argv[])
      */
     if (path != ipath) free(path);
     if (root) free(root);
-    if (free_dependency_path) free(dependency_path);
+    if ( (free_dependency_path) && (dependency_path) )
+        free(dependency_path);
     if (file_filters)
     {
        int count = 0;

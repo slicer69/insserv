@@ -268,15 +268,9 @@ Write out what is currently going on.
 Specify path to the insserv.conf file and the insserv.conf.d
 directory.  Useful for testing.
 .TP
-.BR \-l ,\ \-\-legacy\-path
-By default, insserv places Makefile-style dependency information in
-the /lib/insserv/ directory. In insserv 1.19.0 and earlier this
-information was stored in /etc/init.d/. Using the \-l flag uses the
-old, /etc/init.d/ directory to store dependency information.
-.TP
 .BR \-i , \ \-\-insserv\-dir
 The insserv program will try to place dependency information
-in the /lib/insserv/ directory. When using the \-i flag, the
+in the /etc/init.d directory. When using the \-i flag, the
 user can specify an alternative directory for dependency information.
 This is typically used when debugging insserv.
 .TP
@@ -473,11 +467,11 @@ SuSE
 init script base directory as
 required by the Linux Standard Base Specification (LSB).
 .PP
-.IR /lib/insserv/depend.boot ,
+.IR /etc/init.d/.depend.boot ,
 .br
-.IR /lib/insserv/depend.start ,
+.IR /etc/init.d/.depend.start ,
 .br
-.I /lib/insserv/depend.stop
+.I /etc/init.d/.depend.stop
 .in +\n(INu
 The
 .BR make (1)

@@ -481,7 +481,6 @@ for
 .IR booting ", " starting ", and " stopping
 with the help of
 .BR startpar (1).
-+.in -\n(INu
 .\"
 .SH SEE ALSO
 @@BEGIN_SUSE@@

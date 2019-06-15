@@ -1,3 +1,8 @@
+July 2019 (1.21.0) - jsmith@resonatingmedia.com
+
+- Fixed typo in insserv.8 manual page.
+
+
 June 2019 (1.20.0) - jsmith@resonatingmedia.com
 
 - Update insserv manual page to refer to startpar(1)

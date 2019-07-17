@@ -177,7 +177,6 @@ static char buf[LINE_MAX];
 /* When to be verbose, and what level of verbosity */
 static int verbose = 0;
 
-/* When to be verbose */
 static boolean dryrun = false;
 
 /* When paths set do not add root if any */
@@ -1207,7 +1206,6 @@ char *myname = (char*)0;
 static void _logger (const char *restrict const fmt, va_list ap);
 static void _logger (const char *restrict const fmt, va_list ap)
 {
-    /* extension char buf[strlen(myname)+2+strlen(fmt)+1]; */
     char buf[strlen(myname)+2+strlen(fmt)+1];
     strcat(strcat(strcpy(buf, myname), ": "), fmt);
     vfprintf(stderr, buf, ap);

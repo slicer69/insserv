@@ -262,7 +262,7 @@ grouped into one starting or stopping order.
 Currently the following options are recognized by insserv:
 .TP
 .BR \-v ,\  \-\-verbose
-Write out what is currently going on.
+Perform operation with more diagnotic messages printed on stderr.
 .TP
 .BR \-c\ <config> ,\  \-\-config\ <config>
 Specify path to the insserv.conf file and the insserv.conf.d

@@ -168,7 +168,7 @@ Known runlevels are:
  \fB2\fR\   used for local multiuser without remote network
  \fB3\fR\   used for full multiuser with network
  \fB4\fR\   reserved for local use
- \fB5\fR\   used for full multiuser with network and xdm
+ \fB5\fR\   used for full multiuser with network and graphical interface
  \fB6\fR\   used for System reboot
  \fBS\fR\   used during boot into single user mode
  \fBB\fR\   used during boot before any other runlevel

@@ -264,6 +264,11 @@ Currently the following options are recognized by insserv:
 .BR \-v ,\  \-\-verbose
 Perform operation with more diagnotic messages printed on stderr.
 .TP
+.BR \-q ,\  \-\-silent
+Perform operations silently. This blocks warning messages
+from being printed to stderr. Only fatal error messages
+are printed. 
+.TP
 .BR \-c\ <config> ,\  \-\-config\ <config>
 Specify path to the insserv.conf file and the insserv.conf.d
 directory.  Useful for testing.

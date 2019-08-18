@@ -6,6 +6,8 @@ July 2019 (1.21.0) - jsmith@resonatingmedia.com
 - Added silent (-q) flag which blocks warning messages
   to stderr. In this mode insserv only prints fatal
   error messages.
+- Fixed typo when assigning directory path when -i is used.
+  Updated testsuite to match fixed directory path when -i is used.
 
 June 2019 (1.20.0) - jsmith@resonatingmedia.com
 

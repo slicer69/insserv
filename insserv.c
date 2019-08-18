@@ -2872,12 +2872,12 @@ int main (int argc, char *argv[])
                     goto err;
                 }
                 if (optarg[0] == '/')    // absolute path
-                   asprintf(&dependency_path, "%s/", optarg);
+                   asprintf(&dependency_path, "%s/.", optarg);
                 else                     // relative
                 {
                    char current_dir[PATH_MAX];
                    getcwd(current_dir, PATH_MAX);
-                   asprintf(&dependency_path, "%s/%s/", current_dir, optarg);
+                   asprintf(&dependency_path, "%s/%s/.", current_dir, optarg);
                 }
                 free_dependency_path = true;
                 break;

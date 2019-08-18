@@ -1902,8 +1902,8 @@ check_order 2 first alone2
 # are put after the others on the same level.
 check_order 2 alone1 after
 check_order 2 alone2 after
-if grep INTERACTIVE ${insservdir}/depend.start | grep -q alone1 &&
-    grep INTERACTIVE ${insservdir}/depend.start | grep -q alone1 ; then
+if grep INTERACTIVE ${insservdir}/.depend.start | grep -q alone1 &&
+    grep INTERACTIVE ${insservdir}/.depend.start | grep -q alone1 ; then
     counttest
 else
     error "scripts alone1 and alone2 are not flagged as interactive" 
@@ -1914,7 +1914,7 @@ fi
 test_insserv_conf_makefile() {
 echo
 echo "info: test how recursive /etc/insserv.conf settings show up"
-echo "info: in depend.boot.  BTS #534526."
+echo "info: in .depend.boot.  BTS #534526."
 echo
 
 initdir_purge
@@ -1962,10 +1962,10 @@ EOF
 
 list_rclinks
 
-if ! grep -q "^hal: mountall dbus" ${insservdir}/depend.start ; then
-    msg="hal should depend on dbus and mountall in depend.start:"
+if ! grep -q "^hal: mountall dbus" ${insservdir}/.depend.start ; then
+    msg="hal should depend on dbus and mountall in .depend.start:"
     error "$msg"
-    grep  "^hal: " ${insservdir}/depend.start | sed 's/^/  /'
+    grep  "^hal: " ${insservdir}/.depend.start | sed 's/^/  /'
 fi
 
 update_conf

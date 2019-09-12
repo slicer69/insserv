@@ -21,13 +21,13 @@ CFLDBUS	 =	$(shell pkg-config --cflags dbus-1)
 # Architecture
 #
 ifdef RPM_OPT_FLAGS
-	  COPTS = -g $(RPM_OPT_FLAGS)
+	  COPTS = $(RPM_OPT_FLAGS)
 else
 	   ARCH = $(shell uname -i)
 ifeq ($(ARCH),i386)
-	  COPTS = -g -O3 -mcpu=i586 -mtune=i686
+	  COPTS = -O3 -mcpu=i586 -mtune=i686
 else
-	  COPTS ?= -g -O2
+	  COPTS ?= -O2
 endif
 endif
 	 CFLAGS = -W -Wall -Wunreachable-code $(COPTS) $(DEBUG) $(LOOPS) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \

@@ -1,3 +1,8 @@
+October 2019 (1.22.0) - jsmith@resonatingmedia.com
+
+- Removed debugging flag from Makefile. It should be
+  overruled anyway by the optimization flag.
+
 July 2019 (1.21.0) - jsmith@resonatingmedia.com
 
 - Fixed typo in insserv.8 manual page.

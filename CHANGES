@@ -2,6 +2,11 @@ October 2019 (1.22.0) - jsmith@resonatingmedia.com
 
 - Removed debugging flag from Makefile. It should be
   overruled anyway by the optimization flag.
+- Use git login credentials to upload rather than svn, which is no longer used.
+  Make sure git ignores files that we build, or need during build process.
+  Added PREFIX variable to Makefile to better control where manual page and
+  insserv executable are stored. Defaults to /usr.
+  This effectively moves insserv executable from /sbin to /usr/sbin.
 
 July 2019 (1.21.0) - jsmith@resonatingmedia.com
 

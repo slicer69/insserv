@@ -16,6 +16,7 @@ VERSION	 =	1.21.0
 TARBALL  =	$(PACKAGE)-$(VERSION).tar.xz
 DATE	 =	$(shell date +'%d%b%y' | tr '[:lower:]' '[:upper:]')
 CFLDBUS	 =	$(shell pkg-config --cflags dbus-1)
+PREFIX   ?=	/usr
 
 #
 # Architecture
@@ -55,11 +56,11 @@ endif
 	INSTCON = install $(INSTCONFLAGS)
 	   LINK = ln -sf
 #
-	SDOCDIR = $(DESTDIR)/usr/share/man/man8
-	SBINDIR = $(DESTDIR)/sbin
+	SDOCDIR = $(DESTDIR)$(PREFIX)/share/man/man8
+	SBINDIR = $(DESTDIR)$(PREFIX)/sbin
 	CONFDIR = $(DESTDIR)/etc
 	 LSBDIR = $(DESTDIR)/lib/lsb
-      USRLSBDIR = $(DESTDIR)/usr/lib/lsb
+      USRLSBDIR = $(DESTDIR)$(PREFIX)/lib/lsb
 
 #
 # Determine if a library provides a specific function
@@ -191,11 +192,11 @@ FILES	= README         \
 	  remove_initd   \
 	  install_initd 
 
-SVLOGIN=$(shell svn info | sed -rn '/Repository Root:/{ s|.*//(.*)\@.*|\1|p }')
 ifeq ($(MAKECMDGOALS),upload)
 override TMP:=$(shell mktemp -d $(PACKAGE)-$(VERSION).XXXXXXXX)
 override SFTPBATCH:=$(TMP)/$(VERSION)-sftpbatch
 override LSM=$(TMP)/$(PACKAGE)-$(VERSION).lsm
+GITLOGIN=$(shell git remote -v | head -n 1 | cut -f 1 -d '@' | sed 's/origin\t//g')
 
 $(LSM):	$(TMP)/$(PACKAGE)-$(VERSION)
 	@echo -e "Begin3\n\
@@ -218,7 +219,7 @@ dest: $(LSM)
 endif
 
 upload: $(SFTPBATCH)
-	@sftp -b $< $(SVLOGIN)@dl.sv.nongnu.org:/releases/sysvinit
+	@sftp -b $< $(GITLOGIN)@dl.sv.nongnu.org:/releases/sysvinit
 	mv $(TARBALL) $(LSM) .
 	rm -rf $(TMP)
 

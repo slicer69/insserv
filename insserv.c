@@ -23,11 +23,13 @@
  *
  */
 
+#ifdef WANT_SYSTEMD
 /*
  * Systemd integration
  */
 #define SYSTEMD_SERVICE_PATH	"/lib/systemd/system"
 #define SYSTEMD_BINARY_PATH	"/bin/systemd"
+#endif /* WANT_SYSTEMD */
 
 #define MINIMAL_MAKE	1	/* Remove disabled scripts from .depend.boot,
 				 * .depend.start, .depend.halt, and .depend.stop */

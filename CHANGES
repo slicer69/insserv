@@ -7,6 +7,11 @@ October 2019 (1.22.0) - jsmith@resonatingmedia.com
   Added PREFIX variable to Makefile to better control where manual page and
   insserv executable are stored. Defaults to /usr.
   This effectively moves insserv executable from /sbin to /usr/sbin.
+- Make sure we define "extension" for older versions of GCC (5 and under).
+  Make systemd/dbus support optional in Makefile using WANT_SYSTEMD
+  flag.
+  - Patches provided by Petr Ovtchenkov and Dmitry Bogatov.
+  
 
 July 2019 (1.21.0) - jsmith@resonatingmedia.com
 

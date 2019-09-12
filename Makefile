@@ -15,8 +15,12 @@ DESTDIR	 =
 VERSION	 =	1.21.0
 TARBALL  =	$(PACKAGE)-$(VERSION).tar.xz
 DATE	 =	$(shell date +'%d%b%y' | tr '[:lower:]' '[:upper:]')
-CFLDBUS	 =	$(shell pkg-config --cflags dbus-1)
 PREFIX   ?=	/usr
+ifdef WANT_SYSTEMD
+CFLDBUS	 =	$(shell pkg-config --cflags dbus-1)
+else
+CFLDBUS  =
+endif
 
 #
 # Architecture
@@ -32,7 +36,10 @@ else
 endif
 endif
 	 CFLAGS = -W -Wall -Wunreachable-code $(COPTS) $(DEBUG) $(LOOPS) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
-		  $(ISSUSE) -DINITDIR=\"$(INITDIR)\" -DINSCONF=\"$(INSCONF)\" -pipe 
+		  $(ISSUSE) -DINITDIR=\"$(INITDIR)\" -DINSCONF=\"$(INSCONF)\" -pipe
+ifdef WANT_SYSTEMD
+	 CFLAGS += -DWANT_SYSTEMD=1
+endif
 	  CLOOP = # -falign-loops=0
 	LDFLAGS ?= -Wl,-O,3,--relax
 	   LIBS =
@@ -41,7 +48,9 @@ ifdef USE_RPMLIB
 	LDFLAGS += -Wl,--as-needed
 	   LIBS += -lrpm
 endif
+ifdef WANT_SYSTEMD
 	   LIBS += $(shell pkg-config --libs dbus-1)
+endif
 	     CC ?= gcc
 	     RM = rm -f
 	  MKDIR = mkdir -p
@@ -74,11 +83,16 @@ endif
 # The rules
 #
 
+ifdef WANT_SYSTEMD
+SYSTEMD_O = systemd.o
+SYSTEMD_H = systemd.h
+endif
+
 TODO	=	insserv insserv.8
 
 all:		$(TODO)
 
-insserv:	insserv.o listing.o systemd.o map.o
+insserv:	insserv.o listing.o ${SYSTEMD_O} map.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 listing.o:	listing.c insserv.c listing.h config.h .system
@@ -87,11 +101,13 @@ listing.o:	listing.c insserv.c listing.h config.h .system
 map.o:	map.c listing.h config.h .system
 	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) -c $<
 
-insserv.o:	insserv.c map.o listing.h systemd.h config.h .system
+insserv.o:	insserv.c map.o listing.h ${SYSTEMD_H} config.h .system
 	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) insserv.c -c 
 
+ifdef WANT_SYSTEMD
 systemd.o:	systemd.c map.o listing.h systemd.h config.h .system
 	$(CC) $(CFLAGS) $(CLOOP) $(CFLDBUS) -c $<
+endif
 
 listing.h:	.system
 

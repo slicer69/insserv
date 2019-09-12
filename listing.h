@@ -47,10 +47,10 @@ typedef unsigned int uint;
 # ifndef  asm
 #  define asm			__asm__
 # endif
+#endif
 # ifndef  extension
 #  define extension		__extension__
 # endif
-#endif
 #ifndef  attribute
 # define attribute(attr)	__attribute__(attr)
 #endif

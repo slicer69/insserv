@@ -10,8 +10,11 @@ October 2019 (1.22.0) - jsmith@resonatingmedia.com
 - Make sure we define "extension" for older versions of GCC (5 and under).
   Make systemd/dbus support optional in Makefile using WANT_SYSTEMD
   flag.
-  - Patches provided by Petr Ovtchenkov and Dmitry Bogatov.
-  
+  Patches provided by Petr Ovtchenkov and Dmitry Bogatov.
+- Added support for checking to see if a script that is missing its LSB
+  header may be an OpenRC script.
+  Patch provided by Merlijn Wajer, Ivan J, and Tito.
+ 
 
 July 2019 (1.21.0) - jsmith@resonatingmedia.com
 

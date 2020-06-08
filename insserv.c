@@ -1393,6 +1393,43 @@ static inline void scan_script_reset(void)
 }
 
 /*
+ * Return TRUE if the script is an OpenRC script.
+ */
+
+int is_openrc_job(const char *path)
+{
+    char buf[64];
+    FILE *script = NULL;
+    char *p = NULL;
+
+    script = fopen(path, "r");
+    if (script == NULL) {
+        warn("Can not open script %s: %s\n", path, strerror(errno));
+        return 0;
+    }
+
+    if (fgets(buf, 64, script) == NULL) {
+        warn("Could not read script %s: %s\n", path, strerror(errno));
+        fclose(script);
+        return 0;
+    }
+    fclose(script);
+
+    p = buf;
+    while (*p) {
+       if (isspace(*p)) {
+             memmove(p , p + 1, strlen(p + 1) + 1);
+	  }
+          p++;
+   }
+
+    if (! strncmp(buf, "#!/sbin/openrc-run", 18))
+        return 1;
+
+    return 0;
+}
+
+/*
  * return name of upstart job if the script is a symlink to
  * /lib/init/upstart-job, or NULL if path do not point to an
  * upstart job.
@@ -1463,6 +1500,7 @@ static char *is_upstart_job(const char *path)
 #define FOUND_LSB_OVERRIDE 0x04
 #define FOUND_LSB_UPSTART  0x08
 #define FOUND_LSB_SYSTEMD  0x10
+#define FOUND_LSB_OPENRC   0x20
 
 static int o_flags = O_RDONLY;
 
@@ -1822,6 +1860,11 @@ static uchar scan_script_defaults(int dfd, const char *restrict const path,
     }
 #endif /* WANT_SYSTEMD */
 
+    if (is_openrc_job(path)) {
+        ret |= FOUND_LSB_OPENRC;
+        goto out;
+    }
+
     if (NULL != (upstart_job = is_upstart_job(path))) {
 	xreset(upstart_job);
 	/*
@@ -2037,7 +2080,7 @@ static void scan_script_locations(const char *const path, const char *const over
 		if (!lsb)
 		    service->attr.flags |= SERV_NOTLSB;
 
-		if ((lsb & FOUND_LSB_HEADER) == 0) {
+		if ((lsb & (FOUND_LSB_HEADER|FOUND_LSB_OPENRC)) == 0) {
 		    if ((lsb & (FOUND_LSB_DEFAULT|FOUND_LSB_OVERRIDE)) == 0)
 		        warn("warning: script '%s' missing LSB tags and overrides\n", d->d_name);
 		    else
@@ -3136,7 +3179,7 @@ int main (int argc, char *argv[])
 	char * provides, * begin, * token;
 	const uchar lsb = scan_script_defaults(dfd, name, override_path, (char**)0, false, ignore);
 
-	if ((lsb & FOUND_LSB_HEADER) == 0) {
+	if ((lsb & (FOUND_LSB_HEADER|FOUND_LSB_OPENRC)) == 0) {
 	    if ((lsb & (FOUND_LSB_DEFAULT|FOUND_LSB_OVERRIDE)) == 0)
 	        warn("warning: script '%s' missing LSB tags and overrides\n", name);
 	    else
@@ -3331,7 +3374,7 @@ int main (int argc, char *argv[])
 	/* main scanner for LSB comment in current script */
 	lsb = scan_script_defaults(dfd, d->d_name, override_path, (char**)0, false, ignore);
 
-	if ((lsb & FOUND_LSB_HEADER) == 0) {
+	if ((lsb & (FOUND_LSB_HEADER|FOUND_LSB_OPENRC)) == 0) {
 	    if ((lsb & (FOUND_LSB_DEFAULT|FOUND_LSB_OVERRIDE)) == 0)
 	        warn("warning: script '%s' missing LSB tags and overrides\n", d->d_name);
 	    else
@@ -3372,7 +3415,7 @@ int main (int argc, char *argv[])
 #endif /* SUSE */
 
 #ifndef SUSE
-	if (!lsb) {
+	if (!lsb || (lsb & FOUND_LSB_OPENRC)) {
 	    script_inf.required_start = xstrdup(DEFAULT_DEPENDENCY);
 	    script_inf.required_stop = xstrdup(DEFAULT_DEPENDENCY);
 	    script_inf.default_start = xstrdup(DEFAULT_START_LVL);

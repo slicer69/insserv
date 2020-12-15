@@ -2782,6 +2782,8 @@ boolean Start_Stop_Overlap(char *start_levels, char *stop_levels)
    int string_index = 0;
    char *found;
 
+   if (!start_levels || !stop_levels) return false;
+
    while (start_levels[string_index])   /* go to end of string */
    {
        if (start_levels[string_index] != ' ') /* skip spaces */
@@ -3618,6 +3620,14 @@ int main (int argc, char *argv[])
 		    if (script_inf.stop_after && script_inf.stop_after != empty) {
 			reversereq(service, REQ_SHLD|REQ_KILL, script_inf.stop_after);
 		    }
+
+                    overlap = Start_Stop_Overlap(script_inf.default_start, script_inf.default_stop);
+                    if (overlap)
+                    {
+                        warn("Script `%s' has overlapping Default-Start and Default-Stop runlevels (%s) and (%s). This should be fixed.\n",
+                              d->d_name, script_inf.default_start, script_inf.default_stop);
+                    }
+
 		    /*
 		     * Use information from symbolic link structure to
 		     * check if all services are around for this script.
@@ -3783,13 +3793,6 @@ int main (int argc, char *argv[])
 	    script_inf.default_stop = empty;
 	}
 #endif /* not SUSE */
-
-        overlap = Start_Stop_Overlap(script_inf.default_start, script_inf.default_stop);
-        if (overlap)
-        {
-            warn("Script %s has overlapping Default-Start and Default-Stop runlevels (%s) and (%s). This should be fixed.\n",
-                  d->d_name, script_inf.default_start, script_inf.default_stop);
-        }
 
 	if (isarg && !defaults && !del) {
 	    if (argr[curr_argc]) {

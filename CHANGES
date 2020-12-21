@@ -4,6 +4,7 @@ December 2020 (1.23.0) - jsmith@resonatingmedia.com
 - Updated manual page to indicate scripts with LSB headers
   that do not include a start (or stop) runlevel will not
   be marked for starting (or stopping).
+- Fixed typo in manual page.
 
 
 October 2019 (1.22.0) - jsmith@resonatingmedia.com

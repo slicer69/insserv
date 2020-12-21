@@ -382,7 +382,7 @@ Beside using the extensions
 and
 .I ,stop=<lvl1,lvl2,...>
 it is possible to use override files replace a LSB comment header
-or simple provide a missing LSB comment header.  This can be done
+or simply provide a missing LSB comment header.  This can be done
 by placing a file with the new LSB comment header using the same
 name as the boot or init script in the directory
 .IR /etc/insserv/overrides/ .

@@ -2282,6 +2282,7 @@ static int cfgfile_filter(const struct dirent *restrict d)
 	    !strcmp(end,  "org")	||
 	    !strcmp(end,  "orig")	||
 	    !strncmp(end, "dpkg", 4)	|| /* .dpkg-old, .dpkg-new ... */
+            !strncmp(end, "ucf", 3)     || /* .ucf-old, .ucf-dist ... */
 	    !strcmp(end,  "save")	||
 	    !strcmp(end,  "swp")	|| /* Used by vi like editors */
 	    !strcmp(end,  "core"))	   /* modern core dump */

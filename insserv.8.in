@@ -416,6 +416,7 @@ boot script file names will be not accepted by
         *.local
 @@END_SUSE@@
         *.dpkg*
+        *.ucf*
         *.rpm*
         *.ba*
         *.old

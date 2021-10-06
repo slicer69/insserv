@@ -2,6 +2,10 @@ October 2021 (1.24.0) - jsmith@resonatingmedia.com
 
 - Fix off-by one error in filename filtering.
   Fix provided by Mark Hindley.
+- Added ignore rule for files ending with .ucf which is used by Debian
+  to manage scripts.
+  Patch provided by Mark Hindley.
+
 
 December 2020 (1.23.0) - jsmith@resonatingmedia.com
 

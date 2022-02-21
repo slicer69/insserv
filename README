@@ -14,7 +14,7 @@ libdbus-1-dev on Debian.
 
 Installing
 
-To build insserv, run the command "make install" in the top level of the
+To build insserv, run the command "make" in the top level of the
 source directory. To install the innserv software, run "sudo make install".
 This will perform some checks and then copy the software into place.
 

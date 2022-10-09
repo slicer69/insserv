@@ -27,8 +27,12 @@
 /*
  * Systemd integration
  */
-#define SYSTEMD_SERVICE_PATH	"/lib/systemd/system"
-#define SYSTEMD_BINARY_PATH	"/bin/systemd"
+  #ifndef SYSTEMD_SERVICE_PATH
+     #define SYSTEMD_SERVICE_PATH	"/lib/systemd/system"
+  #endif
+  #ifndef SYSTEMD_BINARY_PATH
+     #define SYSTEMD_BINARY_PATH	"/bin/systemd"
+  #endif
 #endif /* WANT_SYSTEMD */
 
 #define MINIMAL_MAKE	1	/* Remove disabled scripts from .depend.boot,

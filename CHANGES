@@ -1,3 +1,7 @@
+- Clean up manual page description of -c (--config) to make the scanning for
+  a configuration directory clearer.
+
+
 October 2021 (1.24.0) - jsmith@resonatingmedia.com
 
 - Fix off-by one error in filename filtering.

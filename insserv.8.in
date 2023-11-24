@@ -279,8 +279,10 @@ from being printed to stderr. Only fatal error messages
 are printed. 
 .TP
 .BR \-c\ <config> ,\  \-\-config\ <config>
-Specify path to the insserv.conf file and the insserv.conf.d
-directory.  Useful for testing.
+Specify path to the insserv.conf file (by default located at /etc/insserv.conf). This is typically used
+for testing purposes. insserv will automatically
+check for the existance of an insserv configuration directory under this location. For example, specifying
+/usr/local/etc/insserv.conf will cause insserv to also scan the directory /usr/local/etc/insserv.conf.d/
 .TP
 .BR \-i , \ \-\-insserv\-dir
 The insserv program will try to place dependency information

@@ -292,6 +292,7 @@ static void __follow (dir_t *restrict dir, dir_t *restrict skip, const int level
     register int loop = 0;	/* Count number of links in symbolic list */
     handle_t * peg, * pskp = (handle_t*)0;
     const char * act;
+    int impossible = 0;
 
     if (mode == 'K') {
 	peg = &dir->stopp;
@@ -421,8 +422,10 @@ static void __follow (dir_t *restrict dir, dir_t *restrict skip, const int level
 	    } else {
 		if (sflags & SERV_ALL) {
 		    warn("Starting %s depends on %s and therefore on system facility `$all' which can not be true!\n",
-			 target->script ? target->script : target->name, tmp->script ? tmp->script : tmp->name);
-		    continue;
+			 target->script ? target->script : target->name, 
+                         tmp->script ? tmp->script : tmp->name);
+		    // continue;
+                    impossible = 1;
 		}
 	    }
 
@@ -443,7 +446,7 @@ static void __follow (dir_t *restrict dir, dir_t *restrict skip, const int level
 	prefetch(l_list->next);
 
 	if (!recursion) {
-	    if (reportloop && !(ptmp->flags & DIR_LOOPREPORT)) {
+	    if ( (impossible || reportloop) && !(ptmp->flags & DIR_LOOPREPORT)) {
 		warn(" loop involving service %s at depth %d\n", tmp->name, level);
 		ptmp->flags |= DIR_LOOPREPORT;
 	    }

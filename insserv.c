@@ -1429,6 +1429,8 @@ int is_openrc_job(const char *path)
 
     if (! strncmp(buf, "#!/sbin/openrc-run", 18))
         return 1;
+    else if (! strncmp(buf, "#!/usr/sbin/openrc-run", 22) ) 
+        return 1;
 
     return 0;
 }

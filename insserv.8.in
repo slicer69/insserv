@@ -272,7 +272,7 @@ grouped into one starting or stopping order.
 Currently the following options are recognized by insserv:
 .TP
 .BR \-v ,\  \-\-verbose
-Perform operation with more diagnotic messages printed on stderr.
+Perform operation with more diagnostic messages printed on stderr.
 .TP
 .BR \-q ,\  \-\-silent
 Perform operations silently.

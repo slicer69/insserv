@@ -26,7 +26,8 @@
 .UC 8
 @@END_SUSE@@
 .SH NAME
-insserv \- boot sequence organizer using LSB init.d script dependency information
+insserv \- boot sequence organizer using LSB init.d script dependency \
+information
 .SH SYNOPSIS
 .\"
 .B insserv
@@ -62,7 +63,7 @@ insserv \- boot sequence organizer using LSB init.d script dependency informatio
 @@BEGIN_SUSE@@
 .RB /usr/lib/lsb/install_initd
 .RI [[ / ] path/to/init.d/script ]
-.PP
+.
 .RB /usr/lib/lsb/remove_initd
 .RI [[ / ] path/to/init.d/script ]
 @@END_SUSE@@
@@ -73,7 +74,7 @@ is a low level tool used by
 which enables an installed system
 init script (`boot script') by reading the comment header of the script, e.g.:
 .sp 1
-.in +1l
+.in +1m
 .nf
  ### BEGIN INIT INFO
  # Provides:          boot_facility_1 [ boot_facility_2 ...]
@@ -90,7 +91,7 @@ init script (`boot script') by reading the comment header of the script, e.g.:
  # Description:       multiline_description
  ### END INIT INFO
 .fi
-.in -1l
+.in -1m
 .sp 1
 and calculating the dependencies between all scripts.  It is not recommended to
 execute insserv directly unless you know exactly what you're doing, doing so
@@ -100,8 +101,8 @@ is the recommended interface for managing init scripts.
 .PP
 The
 .B Default\-Start
-keyword declares on which runlevels the script must be started. An empty
-value means the script will never be started.
+keyword declares on which runlevels the script must be started.
+An empty value means the script will never be started.
 @@BEGIN_SUSE@@
 Please note, that the
 .B Default\-Stop
@@ -115,22 +116,22 @@ with the only difference that the script will be stopped.
 .PP
 Please be aware that the line
 .sp 1
-.in +1l
+.in +1m
 .nf
  # Required-Stop:  boot_facility_1 [ boot_facility_2 ...]
 .fi
-.in -1l
+.in -1m
 .sp 1
 declares facilities which must be available during shutdown of the service
 declared in the
 .B Provides
 tag.  Same holds true for
 .sp 1
-.in +1l
+.in +1m
 .nf
  # Should-Stop:    boot_facility_1 [ boot_facility_2 ...]
 .fi
-.in -1l
+.in -1m
 .sp 1
 which declares facilities which should be available during shutdown of
 the service declared in the
@@ -196,13 +197,13 @@ and each file in the directory
 Each line which begins with
 .B $
 and a following name defines a system facility
-accordingly to the Linux Standard Base Specification (LSB),
+accordingly to the Linux Standard Base Specification (LSB).
 All names followed by such a system facility
 will declare the required dependencies of the facility.
 Here is an example for
 .IR /etc/insserv.conf :
 .sp 1
-.in +1l
+.in +1m
 .nf
  # All local filesystems are mounted
  # (done during boot phase)
@@ -227,7 +228,7 @@ Here is an example for
  # Services which need to be interactive
  <interactive>   boot.crypto
 .fi
-.in -1l
+.in -1m
 .sp 1
 Names starting with a `+' sign are marked as optional.
 If the service with the name after the plus sign is
@@ -274,20 +275,26 @@ Currently the following options are recognized by insserv:
 Perform operation with more diagnotic messages printed on stderr.
 .TP
 .BR \-q ,\  \-\-silent
-Perform operations silently. This blocks warning messages
-from being printed to stderr. Only fatal error messages
-are printed. 
+Perform operations silently.
+This blocks warning messages from being printed to stderr.
+Only fatal error messages are printed.
 .TP
 .BR \-c\ <config> ,\  \-\-config\ <config>
-Specify path to the insserv.conf file (by default located at /etc/insserv.conf). This is typically used
-for testing purposes. insserv will automatically
-check for the existance of an insserv configuration directory under this location. For example, specifying
-/usr/local/etc/insserv.conf will cause insserv to also scan the directory /usr/local/etc/insserv.conf.d/
+Specify path to the insserv.conf file
+(by default located at /etc/insserv.conf).
+This is typically used for testing purposes.
+.BR insserv (8)
+will automatically check for the existence of an insserv
+configuration directory under this location.
+For example,
+specifying /usr/local/etc/insserv.conf will cause insserv to also scan the
+directory /usr/local/etc/insserv.conf.d/
 .TP
 .BR \-i , \ \-\-insserv\-dir
 The insserv program will try to place dependency information
-in the /etc/init.d directory. When using the \-i flag, the
-user can specify an alternative directory for dependency information.
+in the /etc/init.d directory.
+When using the \-i flag,
+the user can specify an alternative directory for dependency information.
 This is typically used when debugging insserv.
 .TP
 .BR \-o\ <path> ,\  \-\-override\ <path>
@@ -298,11 +305,12 @@ LSB comment headers of scripts in the init.d directory (default path is
 .BR \-p\ <path> ,\  \-\-path\ <path>
 Specify path to init.d directory.  Useful for testing.
 .TP
-.BR \-n ,\  \-\-dryrun, \  \-\-dry\-run
-Do not update symlinks. Does not create depend.boot, depend.start, and depend.stop
+.BR \-n ,\  \-\-dryrun ,\  \-\-dry\-run
+Do not update symlinks.
+Does not create depend.boot, depend.start, and depend.stop
 files.
 .TP
-.BR \-s ,\  \-\-showall, \ \-\-show\-all
+.BR \-s ,\  \-\-showall ,\ \-\-show\-all
 Output runlevel and sequence information.  Do not update symlinks.
 .TP
 .BR \-r ,\  \-\-remove
@@ -412,7 +420,7 @@ Please be aware that the following patterns of
 boot script file names will be not accepted by
 .BR insserv :
 .sp 1
-.in +1l
+.in +1m
 .nf
 @@BEGIN_SUSE@@
         *.local
@@ -430,24 +438,27 @@ boot script file names will be not accepted by
         *.core
         *~
 .fi
-.in -1l
+.in -1m
 .sp 1
 with the wildcard character
 .BR * .
 Beside this all boot script file names beginning with one
 of the following characters
 .sp 1
-.in +1l
+.in +1m
 .nf
         $.#%_+-\e*[]^:()~
 .fi
-.in -1l
+.in -1m
 .sp 1
 will be ignored.
-Administrators can further filter files by extension in the /etc/init.d/ directory
-by creating a text file called /etc/insserv/file\-filters. The file\-filters configuration
-file lists (one per line) extensions which should be ignored by insserv as it parses the
-/etc/init.d/ directory. An example of /etc/insserv/file\-filters might look like this:
+Administrators can further filter files by extension in the /etc/init.d/
+directory by creating a text file called /etc/insserv/file\-filters.
+The file\-filters configuration file lists
+(one per line)
+extensions which should be ignored by insserv as it parses the /etc/init.d/
+directory.
+An example of /etc/insserv/file\-filters might look like this:
 .nf
 	git
 	svn

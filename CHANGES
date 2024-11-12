@@ -1,3 +1,6 @@
+- Clean up typos and syntax errors in insserv.8.in
+
+
 August  2024 (1.25.0) - jsmith@resonatingmedia.com
 
 - Clean up manual page description of -c (--config) to make the scanning for
